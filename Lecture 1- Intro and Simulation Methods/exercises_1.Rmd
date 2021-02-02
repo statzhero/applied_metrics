@@ -88,6 +88,7 @@ reg_out <- function(sample, a = rep(0,3)) {
            r2 = summary(est)$r.squared,
            mse = mean(est$residuals^2))
   return(est_out)
+  # split(est_out, est_out$term) // for next time
 }
 ```
 
@@ -121,6 +122,79 @@ sapply(thousand_samples_unif, get_beta) %>%
 
 5. Make a table that shows how $\widehat{\beta}_1$ and computes the mean, the standard deviation, the 5th and 95th percentile, and compare that to the asymptotic standard error under different assumptions about the error distribution.
 
+The asymptotic variance of $\widehat{\beta}$ is equal to $(\sigma^2 / n) Q^{-1}$ where $Q$ here is simply  $Q = var(x_1)$ because $x_1$ and $x_2$ are uncorrelated and have mean zero.
 
+
+``` {r}
+# n = 100
+# Empirical 
+empirical_norm <- sapply(hundred_samples, get_beta) %>% 
+  tibble(beta_1 = .) %>% 
+  summarize(
+    parameter = "empirical (normal)",
+    mean = mean(beta_1),
+    sd = sd(beta_1),
+    q05 = quantile(beta_1, probs = 0.05),
+    q95 = quantile(beta_1, probs = 0.95)
+  )
+
+empirical_unif <- sapply(hundred_samples_unif, get_beta) %>% 
+  tibble(beta_1 = .) %>% 
+  summarize(
+    parameter = "empirical (uniform)",
+    mean = mean(beta_1),
+    sd = sd(beta_1),
+    q05 = quantile(beta_1, probs = 0.05),
+    q95 = quantile(beta_1, probs = 0.95)
+  )
+
+
+# Theoretical
+theoretical <- tibble(
+  parameter = "theoretical",
+  mean = beta[2],
+  sd = sqrt(e_var / 100 / x1_var),
+  q05 = qnorm(0.05, mean = mean, sd = sd),
+  q95 = qnorm(0.95, mean = mean, sd = sd)
+)
+
+bind_rows(empirical_norm, empirical_unif, theoretical)
+```
+
+
+``` {r}
+# n = 1000
+# Empirical 
+empirical_norm <- sapply(thousand_samples, get_beta) %>% 
+  tibble(beta_1 = .) %>% 
+  summarize(
+    parameter = "empirical (normal)",
+    mean = mean(beta_1),
+    sd = sd(beta_1),
+    q05 = quantile(beta_1, probs = 0.05),
+    q95 = quantile(beta_1, probs = 0.95)
+  )
+
+empirical_unif <- sapply(thousand_samples_unif, get_beta) %>% 
+  tibble(beta_1 = .) %>% 
+  summarize(
+    parameter = "empirical (uniform)",
+    mean = mean(beta_1),
+    sd = sd(beta_1),
+    q05 = quantile(beta_1, probs = 0.05),
+    q95 = quantile(beta_1, probs = 0.95)
+  )
+
+# Theoretical
+theoretical <- tibble(
+  parameter = "theoretical",
+  mean = beta[2],
+  sd = sqrt(e_var / 1000 / x1_var),
+  q05 = qnorm(0.05, mean = mean, sd = sd),
+  q95 = qnorm(0.95, mean = mean, sd = sd)
+)
+
+bind_rows(empirical_norm, empirical_unif, theoretical)
+```
 
 6. How does changing the variance of $x_1$ and $x_2$ and $e_i$ affect the results? Can you provide a relative precise quantification?
