@@ -9,7 +9,7 @@ output:
     fig_caption: true
 ---
 
-```{r message=F}
+```{r packages, message=F}
 library(tidyverse)
 library(broom)
 ```
@@ -125,7 +125,7 @@ sapply(thousand_samples_unif, get_beta) %>%
 
 ## 5. Make a table that shows how $\widehat{\beta}_1$ and computes the mean, the standard deviation, the 5th and 95th percentile, and compare that to the asymptotic standard error under different assumptions about the error distribution.
 
-The asymptotic variance of $\widehat{\beta}_1$ is equal to $(\sigma^2 / n) Q^{-1}$ where $Q$ here is simply  $Q = var(x_1)$ because $x_1$ and $x_2$ are uncorrelated and have mean zero.
+The asymptotic variance of $\widehat{\beta}_1$ is equal to $(\sigma^2_{error} / n) Q^{-1}$ where $Q$ here is simply  $Q = var(x_1)$ because $x_1$ and $x_2$ are uncorrelated and have mean zero.
 
 
 ``` {r}
@@ -161,7 +161,8 @@ theoretical <- tibble(
   q95 = qnorm(0.95, mean = mean, sd = sd)
 )
 
-bind_rows(empirical_norm, empirical_unif, theoretical)
+bind_rows(empirical_norm, empirical_unif, theoretical) %>% 
+  kableExtra::kbl(booktabs = T)
 ```
 
 
@@ -197,7 +198,8 @@ theoretical <- tibble(
   q95 = qnorm(0.95, mean = mean, sd = sd)
 )
 
-bind_rows(empirical_norm, empirical_unif, theoretical)
+bind_rows(empirical_norm, empirical_unif, theoretical) %>% 
+  kableExtra::kbl(booktabs = T)
 ```
 
 ## 6. How does changing the variance of $x_1$ and $x_2$ and $e_i$ affect the results? Can you provide a relative precise quantification?
