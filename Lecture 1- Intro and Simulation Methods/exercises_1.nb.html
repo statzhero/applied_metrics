@@ -250,16 +250,18 @@ library(broom)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<ol style="list-style-type: decimal">
-<li>Let’s start by writing a function that generates fake data</li>
-</ol>
+<div id="lets-start-by-writing-a-function-that-generates-fake-data" class="section level2">
+<h2>1. Let’s start by writing a function that generates fake data</h2>
 <p><span class="math display">\[
 y_i = \beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + e_i
 \]</span></p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBTZXQgc29tZSBkZWZhdWx0IHZhbHVlc1xubl9vYnMgPC0gMWUzXG5iZXRhIDwtIDE6M1xueDFfdmFyIDwtIDAuNVxueDJfdmFyIDwtIDEuNVxuZV92YXIgPC0gMlxuXG4jIEFzc3VtZSBjZW50ZXJlZCBtZWFucyBmb3Igc2ltcGxpY2l0eVxuXG5nZW5lcmF0ZV9zYW1wbGUgPC0gZnVuY3Rpb24obl9vYnMsIGJldGEsIHgxX3ZhciwgeDJfdmFyLCBlX3ZhciwgZV90eXBlKXtcbiAgeDEgPC0gcm5vcm0obl9vYnMsIHNkID0gc3FydCh4MV92YXIpKVxuICB4MiA8LSBybm9ybShuX29icywgc2QgPSBzcXJ0KHgyX3ZhcikpXG4gIGlmIChlX3R5cGUgPT0gXCJub3JtYWxcIikge2UgIDwtIHJub3JtKG5fb2JzLCBcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHNkID0gc3FydChlX3ZhcikpfSBcbiAgaWYgKGVfdHlwZSA9PSBcInVuaWZvcm1cIikge2UgIDwtIHJ1bmlmKG5fb2JzLCBcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBtaW4gPSAtc3FydChlX3ZhcioxMikvMiwgXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgbWF4ID0gIHNxcnQoZV92YXIqMTIpLzIpfSBcbiAgICB5IDwtIGJldGFbMV0gKyBiZXRhWzJdKngxICsgYmV0YVszXSp4MiArIGVcbiAgc2FtcGxlIDwtIHRpYmJsZSh5LCB4MSwgeDIpXG4gIHJldHVybihzYW1wbGUpIFxufVxuYGBgIn0= -->
-<pre class="r"><code># Set some default values
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBSZXByb2R1Y2VcbnNldC5zZWVkKDIwMjEwMilcblxuIyBTZXQgc29tZSBkZWZhdWx0IHZhbHVlc1xubl9vYnMgPC0gMWUzXG5iZXRhIDwtIDE6M1xueDFfdmFyIDwtIDAuNVxueDJfdmFyIDwtIDEuNVxuZV92YXIgPC0gMlxuXG4jIEFzc3VtZSBjZW50ZXJlZCBtZWFucyBmb3Igc2ltcGxpY2l0eVxuZ2VuZXJhdGVfc2FtcGxlIDwtIGZ1bmN0aW9uKG5fb2JzLCBiZXRhLCB4MV92YXIsIHgyX3ZhciwgZV92YXIsIGVfdHlwZSl7XG4gIHgxIDwtIHJub3JtKG5fb2JzLCBzZCA9IHNxcnQoeDFfdmFyKSlcbiAgeDIgPC0gcm5vcm0obl9vYnMsIHNkID0gc3FydCh4Ml92YXIpKVxuICBpZiAoZV90eXBlID09IFwibm9ybWFsXCIpIHtlICA8LSBybm9ybShuX29icywgXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzZCA9IHNxcnQoZV92YXIpKX0gXG4gIGlmIChlX3R5cGUgPT0gXCJ1bmlmb3JtXCIpIHtlICA8LSBydW5pZihuX29icywgXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgbWluID0gLXNxcnQoZV92YXIqMTIpLzIsIFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIG1heCA9ICBzcXJ0KGVfdmFyKjEyKS8yKX0gXG4gICAgeSA8LSBiZXRhWzFdICsgYmV0YVsyXSp4MSArIGJldGFbM10qeDIgKyBlXG4gIHNhbXBsZSA8LSB0aWJibGUoeSwgeDEsIHgyKVxuICByZXR1cm4oc2FtcGxlKSBcbn1cbmBgYCJ9 -->
+<pre class="r"><code># Reproduce
+set.seed(202102)
+
+# Set some default values
 n_obs &lt;- 1e3
 beta &lt;- 1:3
 x1_var &lt;- 0.5
@@ -267,7 +269,6 @@ x2_var &lt;- 1.5
 e_var &lt;- 2
 
 # Assume centered means for simplicity
-
 generate_sample &lt;- function(n_obs, beta, x1_var, x2_var, e_var, e_type){
   x1 &lt;- rnorm(n_obs, sd = sqrt(x1_var))
   x2 &lt;- rnorm(n_obs, sd = sqrt(x2_var))
@@ -287,8 +288,8 @@ generate_sample &lt;- function(n_obs, beta, x1_var, x2_var, e_var, e_type){
 <p><span class="math display">\[ Var[X_{uniform}] = E[X^2] - E[X]^2 = \frac{(b-a)^2}{12}\]</span></p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2FtcGxlIDwtIGdlbmVyYXRlX3NhbXBsZShuX29icywgYmV0YSwgeDFfdmFyLCB4Ml92YXIsIGVfdmFyLCBlX3R5cGUgPSBcIm5vcm1hbFwiKVxuYGBgIn0= -->
-<pre class="r"><code>sample &lt;- generate_sample(n_obs, beta, x1_var, x2_var, e_var, e_type = &quot;normal&quot;)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2FtcGxlIDwtIGdlbmVyYXRlX3NhbXBsZShuX29icywgYmV0YSwgeDFfdmFyLCB4Ml92YXIsIGVfdmFyLCBlX3R5cGUgPSBcIm5vcm1hbFwiKSAjIHRlc3RcbmBgYCJ9 -->
+<pre class="r"><code>sample &lt;- generate_sample(n_obs, beta, x1_var, x2_var, e_var, e_type = &quot;normal&quot;) # test</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -301,14 +302,13 @@ generate_sample &lt;- function(n_obs, beta, x1_var, x2_var, e_var, e_type){
 <li>e_var: a variance/scale parameter for e_i</li>
 <li>e_type: a distribution type for the residual (maybe uniform or normal?)</li>
 </ul>
-<ol start="2" style="list-style-type: decimal">
-<li>Now let’s write a function that takes the same arguments and also takes as an argument the number of simulated datasets (say 1000?)</li>
-</ol>
+</div>
+<div id="now-lets-write-a-function-that-takes-the-same-arguments-and-also-takes-as-an-argument-the-number-of-simulated-datasets-say-1000" class="section level2">
+<h2>2. Now let’s write a function that takes the same arguments and also takes as an argument the number of simulated datasets (say 1000?)</h2>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBBc3N1bWUgY2VudGVyZWQgbWVhbnMgZm9yIHNpbXBsaWNpdHlcbmdlbl9uX3NhbXBsZXMgPC0gZnVuY3Rpb24ocmVwcyA9IDFlMywgZV90eXBlKXtcbiBzYW1wbGVzIDwtIHJlcGxpY2F0ZShyZXBzLCBcbiAgICAgICAgICAgICAgZ2VuZXJhdGVfc2FtcGxlKG5fb2JzLCBiZXRhLCB4MV92YXIsIHgyX3ZhciwgZV92YXIsIGVfdHlwZSksXG4gICAgICAgICAgICAgIHNpbXBsaWZ5ID0gRkFMU0UpXG4gcmV0dXJuKHNhbXBsZXMpXG59XG5gYGAifQ== -->
-<pre class="r"><code># Assume centered means for simplicity
-gen_n_samples &lt;- function(reps = 1e3, e_type){
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2ltX25fc2FtcGxlcyA8LSBmdW5jdGlvbihyZXBzID0gMWUzLCBlX3R5cGUpe1xuIHNhbXBsZXMgPC0gcmVwbGljYXRlKHJlcHMsIFxuICAgICAgICAgICAgICBnZW5lcmF0ZV9zYW1wbGUobl9vYnMsIGJldGEsIHgxX3ZhciwgeDJfdmFyLCBlX3ZhciwgZV90eXBlKSxcbiAgICAgICAgICAgICAgc2ltcGxpZnkgPSBGQUxTRSlcbiByZXR1cm4oc2FtcGxlcylcbn1cbmBgYCJ9 -->
+<pre class="r"><code>sim_n_samples &lt;- function(reps = 1e3, e_type){
  samples &lt;- replicate(reps, 
               generate_sample(n_obs, beta, x1_var, x2_var, e_var, e_type),
               simplify = FALSE)
@@ -319,42 +319,46 @@ gen_n_samples &lt;- function(reps = 1e3, e_type){
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaHVuZHJlZF9zYW1wbGVzIDwtIGdlbl9uX3NhbXBsZXMoMTAwLCBlX3R5cGUgPSBcIm5vcm1hbFwiKVxuaHVuZHJlZF9zYW1wbGVzX3VuaWYgPC0gZ2VuX25fc2FtcGxlcygxMDAsIGVfdHlwZSA9IFwidW5pZm9ybVwiKVxuXG50aG91c2FuZF9zYW1wbGVzIDwtIGdlbl9uX3NhbXBsZXMoZV90eXBlID0gXCJub3JtYWxcIilcbnRob3VzYW5kX3NhbXBsZXNfdW5pZiAgPC0gZ2VuX25fc2FtcGxlcyhlX3R5cGUgPSBcInVuaWZvcm1cIilcbmBgYCJ9 -->
-<pre class="r"><code>hundred_samples &lt;- gen_n_samples(100, e_type = &quot;normal&quot;)
-hundred_samples_unif &lt;- gen_n_samples(100, e_type = &quot;uniform&quot;)
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaHVuZHJlZF9zYW1wbGVzIDwtIHNpbV9uX3NhbXBsZXMoMTAwLCBlX3R5cGUgPSBcIm5vcm1hbFwiKVxuaHVuZHJlZF9zYW1wbGVzX3VuaWYgPC0gc2ltX25fc2FtcGxlcygxMDAsIGVfdHlwZSA9IFwidW5pZm9ybVwiKVxuXG50aG91c2FuZF9zYW1wbGVzIDwtIHNpbV9uX3NhbXBsZXMoZV90eXBlID0gXCJub3JtYWxcIilcbnRob3VzYW5kX3NhbXBsZXNfdW5pZiAgPC0gc2ltX25fc2FtcGxlcyhlX3R5cGUgPSBcInVuaWZvcm1cIilcbmBgYCJ9 -->
+<pre class="r"><code>hundred_samples &lt;- sim_n_samples(100, e_type = &quot;normal&quot;)
+hundred_samples_unif &lt;- sim_n_samples(100, e_type = &quot;uniform&quot;)
 
-thousand_samples &lt;- gen_n_samples(e_type = &quot;normal&quot;)
-thousand_samples_unif  &lt;- gen_n_samples(e_type = &quot;uniform&quot;)</code></pre>
+thousand_samples &lt;- sim_n_samples(e_type = &quot;normal&quot;)
+thousand_samples_unif  &lt;- sim_n_samples(e_type = &quot;uniform&quot;)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<ol start="3" style="list-style-type: decimal">
-<li>Let’s write a function that takes in a single dataset and runs a regression and calculates the output (let’s keep the estimates of <span class="math inline">\(\widehat{\beta}\)</span> and it’s standard error, <span class="math inline">\(R^2\)</span>, <span class="math inline">\(MSE\)</span>, and let’s evaluate the a t-statistic for the hypothesis that <span class="math inline">\(H_0: \beta=a\)</span> for some choice of <span class="math inline">\(a\)</span>). It will be helpful to return everything in a data frame.</li>
-</ol>
+</div>
+<div id="lets-write-a-function-that-takes-in-a-single-dataset-and-runs-a-regression-and-calculates-the-output-lets-keep-the-estimates-of-widehatbeta-and-its-standard-error-r2-mse-and-lets-evaluate-the-a-t-statistic-for-the-hypothesis-that-h_0-betaa-for-some-choice-of-a.-it-will-be-helpful-to-return-everything-in-a-data-frame." class="section level2">
+<h2>3. Let’s write a function that takes in a single dataset and runs a regression and calculates the output (let’s keep the estimates of <span class="math inline">\(\widehat{\beta}\)</span> and it’s standard error, <span class="math inline">\(R^2\)</span>, <span class="math inline">\(MSE\)</span>, and let’s evaluate the a t-statistic for the hypothesis that <span class="math inline">\(H_0: \beta=a\)</span> for some choice of <span class="math inline">\(a\)</span>). It will be helpful to return everything in a data frame.</h2>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucmVnX291dCA8LSBmdW5jdGlvbihzYW1wbGUsIGEgPSByZXAoMCwzKSkge1xuICBlc3QgPC0gbG0oeSB+IHgxICsgeDIsIGRhdGEgPSBzYW1wbGUpXG4gIGVzdF9vdXQgPC0gdGlkeShlc3QpICU+JSBcbiAgICBtdXRhdGUoY3VzdG9tX3QgPSAoZXN0JGNvZWZmaWNpZW50cyAtIGEpIC8gc3FydChkaWFnKHZjb3YoZXN0KSkpLFxuICAgICAgICAgICByMiA9IHN1bW1hcnkoZXN0KSRyLnNxdWFyZWQsXG4gICAgICAgICAgIG1zZSA9IG1lYW4oZXN0JHJlc2lkdWFsc14yKSlcbiAgcmV0dXJuKGVzdF9vdXQpXG59XG5gYGAifQ== -->
-<pre class="r"><code>reg_out &lt;- function(sample, a = rep(0,3)) {
-  est &lt;- lm(y ~ x1 + x2, data = sample)
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuICBlc3QgPC0gbG0oeSB+IHgxICsgeDIsIGRhdGEgPSBzYW1wbGUpXG4gIGVzdF9vdXQgPC0gdGlkeShlc3QpICU+JSBcbiAgICBtdXRhdGUoY3VzdG9tX3QgPSAoZXN0JGNvZWZmaWNpZW50cyAtIGEpIC8gc3FydChkaWFnKHZjb3YoZXN0KSkpLFxuICAgICAgICAgICByMiA9IHN1bW1hcnkoZXN0KSRyLnNxdWFyZWQsXG4gICAgICAgICAgIG1zZSA9IG1lYW4oZXN0JHJlc2lkdWFsc14yKSlcblxuYGBgIn0= -->
+<pre class="r"><code>  est &lt;- lm(y ~ x1 + x2, data = sample)
   est_out &lt;- tidy(est) %&gt;% 
     mutate(custom_t = (est$coefficients - a) / sqrt(diag(vcov(est))),
            r2 = summary(est)$r.squared,
            mse = mean(est$residuals^2))
-  return(est_out)
-}</code></pre>
+</code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRXJyb3I6IFByb2JsZW0gd2l0aCBgbXV0YXRlKClgIGlucHV0IGBjdXN0b21fdGAuXG54IG9iamVjdCAnYScgbm90IGZvdW5kXG7ihLkgSW5wdXQgYGN1c3RvbV90YCBpcyBgKGVzdCRjb2VmZmljaWVudHMgLSBhKS9zcXJ0KGRpYWcodmNvdihlc3QpKSlgLlxuUnVuIGBybGFuZzo6bGFzdF9lcnJvcigpYCB0byBzZWUgd2hlcmUgdGhlIGVycm9yIG9jY3VycmVkLlxuIn0= -->
+<pre><code>Error: Problem with `mutate()` input `custom_t`.
+x object &#39;a&#39; not found
+ℹ Input `custom_t` is `(est$coefficients - a)/sqrt(diag(vcov(est)))`.
+Run `rlang::last_error()` to see where the error occurred.</code></pre>
+<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucmVnX291dCh0aG91c2FuZF9zYW1wbGVzW1sxXV0sIDA6MilcbmBgYCJ9 -->
-<pre class="r"><code>reg_out(thousand_samples[[1]], 0:2)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucmVnX291dCh0aG91c2FuZF9zYW1wbGVzW1sxXV0sIDA6MikgIyB0ZXN0XG5gYGAifQ== -->
+<pre class="r"><code>reg_out(thousand_samples[[1]], 0:2) # test</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<ol start="4" style="list-style-type: decimal">
-<li>Plot the distribution of <span class="math inline">\(\widehat{\beta}_1\)</span> when the sample size is <span class="math inline">\(n=100\)</span> and see how it compares when <span class="math inline">\(e_i\)</span> is uniform vs. when it is normal across the 1000 samples.</li>
-</ol>
+</div>
+<div id="plot-the-distribution-of-widehatbeta_1-when-the-sample-size-is-n100-and-see-how-it-compares-when-e_i-is-uniform-vs.-when-it-is-normal-across-the-1000-samples." class="section level2">
+<h2>4. Plot the distribution of <span class="math inline">\(\widehat{\beta}_1\)</span> when the sample size is <span class="math inline">\(n=100\)</span> and see how it compares when <span class="math inline">\(e_i\)</span> is uniform vs. when it is normal across the 1000 samples.</h2>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZ2V0X2JldGEgPC0gZnVuY3Rpb24oeCl7XG4gIHRtcCA8LSByZWdfb3V0KHgpICU+JSBcbiAgICBwdWxsKGVzdGltYXRlKSAlPiUgXG4gICAgbnRoKDIpICMgYmV0YTFcbn1cbiAgXG5zYXBwbHkoaHVuZHJlZF9zYW1wbGVzLCBnZXRfYmV0YSkgJT4lIFxuICBoaXN0KG1haW4gPSBcIkJldGFfMSBoaXN0b2dyYW0gZm9yIE4gPSAxMDBcIiwgYnJlYWtzID0gMjApXG5cbnNhcHBseShodW5kcmVkX3NhbXBsZXNfdW5pZiwgZ2V0X2JldGEpICU+JSBcbiAgaGlzdChtYWluID0gXCJCZXRhXzEgaGlzdG9ncmFtIGZvciBOID0gMTAwICh1bmlmb3JtIGVycm9ycylcIiwgYnJlYWtzID0gMjApXG5cbnNhcHBseSh0aG91c2FuZF9zYW1wbGVzLCBnZXRfYmV0YSkgJT4lIFxuICBoaXN0KG1haW4gPSBcIkJldGFfMSBoaXN0b2dyYW0gZm9yIE4gPSAxMDAwXCIsIGJyZWFrcyA9IDIwKVxuXG5zYXBwbHkodGhvdXNhbmRfc2FtcGxlc191bmlmLCBnZXRfYmV0YSkgJT4lIFxuICBoaXN0KG1haW4gPSBcIkJldGFfMSBoaXN0b2dyYW0gZm9yIE4gPSAxMDAwICh1bmlmb3JtIGVycm9ycylcIiwgYnJlYWtzID0gMjApXG5gYGAifQ== -->
@@ -378,11 +382,90 @@ sapply(thousand_samples_unif, get_beta) %&gt;%
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<ol start="5" style="list-style-type: decimal">
-<li><p>Make a table that shows how <span class="math inline">\(\widehat{\beta}_1\)</span> and computes the mean, the standard deviation, the 5th and 95th percentile, and compare that to the asymptotic standard error under different assumptions about the error distribution.</p></li>
-<li><p>How does changing the variance of <span class="math inline">\(x_1\)</span> and <span class="math inline">\(x_2\)</span> and <span class="math inline">\(e_i\)</span> affect the results? Can you provide a relative precise quantification?</p></li>
-</ol>
+</div>
+<div id="make-a-table-that-shows-how-widehatbeta_1-and-computes-the-mean-the-standard-deviation-the-5th-and-95th-percentile-and-compare-that-to-the-asymptotic-standard-error-under-different-assumptions-about-the-error-distribution." class="section level2">
+<h2>5. Make a table that shows how <span class="math inline">\(\widehat{\beta}_1\)</span> and computes the mean, the standard deviation, the 5th and 95th percentile, and compare that to the asymptotic standard error under different assumptions about the error distribution.</h2>
+<p>The asymptotic variance of <span class="math inline">\(\widehat{\beta}_1\)</span> is equal to <span class="math inline">\((\sigma^2 / n) Q^{-1}\)</span> where <span class="math inline">\(Q\)</span> here is simply <span class="math inline">\(Q = var(x_1)\)</span> because <span class="math inline">\(x_1\)</span> and <span class="math inline">\(x_2\)</span> are uncorrelated and have mean zero.</p>
 <!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBuID0gMTAwXG4jIEVtcGlyaWNhbCBcbmVtcGlyaWNhbF9ub3JtIDwtIHNhcHBseShodW5kcmVkX3NhbXBsZXMsIGdldF9iZXRhKSAlPiUgXG4gIHRpYmJsZShiZXRhXzEgPSAuKSAlPiUgXG4gIHN1bW1hcml6ZShcbiAgICBwYXJhbWV0ZXIgPSBcImVtcGlyaWNhbCAobm9ybWFsKVwiLFxuICAgIG1lYW4gPSBtZWFuKGJldGFfMSksXG4gICAgc2QgPSBzZChiZXRhXzEpLFxuICAgIHEwNSA9IHF1YW50aWxlKGJldGFfMSwgcHJvYnMgPSAwLjA1KSxcbiAgICBxOTUgPSBxdWFudGlsZShiZXRhXzEsIHByb2JzID0gMC45NSlcbiAgKVxuXG5lbXBpcmljYWxfdW5pZiA8LSBzYXBwbHkoaHVuZHJlZF9zYW1wbGVzX3VuaWYsIGdldF9iZXRhKSAlPiUgXG4gIHRpYmJsZShiZXRhXzEgPSAuKSAlPiUgXG4gIHN1bW1hcml6ZShcbiAgICBwYXJhbWV0ZXIgPSBcImVtcGlyaWNhbCAodW5pZm9ybSlcIixcbiAgICBtZWFuID0gbWVhbihiZXRhXzEpLFxuICAgIHNkID0gc2QoYmV0YV8xKSxcbiAgICBxMDUgPSBxdWFudGlsZShiZXRhXzEsIHByb2JzID0gMC4wNSksXG4gICAgcTk1ID0gcXVhbnRpbGUoYmV0YV8xLCBwcm9icyA9IDAuOTUpXG4gIClcblxuXG4jIFRoZW9yZXRpY2FsXG50aGVvcmV0aWNhbCA8LSB0aWJibGUoXG4gIHBhcmFtZXRlciA9IFwidGhlb3JldGljYWxcIixcbiAgbWVhbiA9IGJldGFbMl0sXG4gIHNkID0gc3FydCgoZV92YXIgLyAxMDApIC8geDFfdmFyKSxcbiAgcTA1ID0gcW5vcm0oMC4wNSwgbWVhbiA9IG1lYW4sIHNkID0gc2QpLFxuICBxOTUgPSBxbm9ybSgwLjk1LCBtZWFuID0gbWVhbiwgc2QgPSBzZClcbilcblxuYmluZF9yb3dzKGVtcGlyaWNhbF9ub3JtLCBlbXBpcmljYWxfdW5pZiwgdGhlb3JldGljYWwpXG5gYGAifQ== -->
+<pre class="r"><code># n = 100
+# Empirical 
+empirical_norm &lt;- sapply(hundred_samples, get_beta) %&gt;% 
+  tibble(beta_1 = .) %&gt;% 
+  summarize(
+    parameter = &quot;empirical (normal)&quot;,
+    mean = mean(beta_1),
+    sd = sd(beta_1),
+    q05 = quantile(beta_1, probs = 0.05),
+    q95 = quantile(beta_1, probs = 0.95)
+  )
+
+empirical_unif &lt;- sapply(hundred_samples_unif, get_beta) %&gt;% 
+  tibble(beta_1 = .) %&gt;% 
+  summarize(
+    parameter = &quot;empirical (uniform)&quot;,
+    mean = mean(beta_1),
+    sd = sd(beta_1),
+    q05 = quantile(beta_1, probs = 0.05),
+    q95 = quantile(beta_1, probs = 0.95)
+  )
+
+
+# Theoretical
+theoretical &lt;- tibble(
+  parameter = &quot;theoretical&quot;,
+  mean = beta[2],
+  sd = sqrt((e_var / 100) / x1_var),
+  q05 = qnorm(0.05, mean = mean, sd = sd),
+  q95 = qnorm(0.95, mean = mean, sd = sd)
+)
+
+bind_rows(empirical_norm, empirical_unif, theoretical)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInRibF9kZiIsInRibCIsImRhdGEuZnJhbWUiXSwibnJvdyI6MywibmNvbCI6NSwic3VtbWFyeSI6eyJBIHRpYmJsZSI6WyIzIHggNSJdfX0sInJkZiI6Ikg0c0lBQUFBQUFBQUF3dHlpVERtaXVCaVlHQmdabUFCWW1aV0lKT0JOVFRFVGRlQ2dZR0ZDY2hoQkVwd2d1Z0tvQ0poa0N3UUMwQjFnQ1NFVW5NTE1vc3lreE56RkRUeThvdHlFM00wb1RMQ1NES2xlWmxwUUVtWUZIZEpSbXArVVdvSlNCTEk1UU9aNThEQWtSZ3NYR1ZsLy8rZlU3Mk81d3NIQmpnQXk5dnZTenVyM1ZOMzAzN0pUOGMvc256NzdFL09CSUZaREF4TUVQay8zM0xWSjcyOGFQL3YxL3hHbFpKTSsxOTdPZzBEdDVlZ2VZUTFMekUzdFJqTkUweW1xaGdzRVBnSE05eUJjYUtCbTF5NnVnTkRkOG14MTdVaERrd0xkNmVIcTdoQkRHZjZqMlllc3lYY0dDUW0xRVFVSGF4UU9jNkN4Q0tndzBwU2k2QUNMTG1waVhrd1J4V253RXdyTkRDRk15MU4wZnpHV1pSZnJnZnpIeTlJWXdPUStQLy8vMS8wUUVqT1NTeUdCUUpNa0NzbHNTUlJMdzNrRElSRDRiTHMrUVVsbWZsNVFFMU15TWtBbmo2SzBBUUVTdk5BTGtuUlRjNG96Y3ZXTlRJRzJRQ1dod0JlS0pzWmljMktJM0RZVXZQU00vTlNZWTdQU1V4S3pZRnkrSUJlQnZ0WXI2QW9NNjhFNWhXZ2FMRmVTWDVKSWt3ZFYzSitEa3dFN0RtR2Z3QlN2cHlkL2dJQUFBPT0ifQ== -->
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["parameter"],"name":[1],"type":["chr"],"align":["left"]},{"label":["mean"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["sd"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["q05"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["q95"],"name":[5],"type":["dbl"],"align":["right"]}],"data":[{"1":"empirical (normal)","2":"2.004092","3":"0.11875613","4":"1.810163","5":"2.195893"},{"1":"empirical (uniform)","2":"1.999575","3":"0.04096419","4":"1.936187","5":"2.068094"},{"1":"theoretical","2":"2.000000","3":"0.20000000","4":"1.671029","5":"2.328971"}],"options":{"columns":{"min":{},"max":[10],"total":[5]},"rows":{"min":[10],"max":[10],"total":[3]},"pages":{}}}
+  </script>
+</div>
+<!-- rnb-frame-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBuID0gMTAwMFxuIyBFbXBpcmljYWwgXG5lbXBpcmljYWxfbm9ybSA8LSBzYXBwbHkodGhvdXNhbmRfc2FtcGxlcywgZ2V0X2JldGEpICU+JSBcbiAgdGliYmxlKGJldGFfMSA9IC4pICU+JSBcbiAgc3VtbWFyaXplKFxuICAgIHBhcmFtZXRlciA9IFwiZW1waXJpY2FsIChub3JtYWwpXCIsXG4gICAgbWVhbiA9IG1lYW4oYmV0YV8xKSxcbiAgICBzZCA9IHNkKGJldGFfMSksXG4gICAgcTA1ID0gcXVhbnRpbGUoYmV0YV8xLCBwcm9icyA9IDAuMDUpLFxuICAgIHE5NSA9IHF1YW50aWxlKGJldGFfMSwgcHJvYnMgPSAwLjk1KVxuICApXG5cbmVtcGlyaWNhbF91bmlmIDwtIHNhcHBseSh0aG91c2FuZF9zYW1wbGVzLCBnZXRfYmV0YSkgJT4lIFxuICB0aWJibGUoYmV0YV8xID0gLikgJT4lIFxuICBzdW1tYXJpemUoXG4gICAgcGFyYW1ldGVyID0gXCJlbXBpcmljYWwgKHVuaWZvcm0pXCIsXG4gICAgbWVhbiA9IG1lYW4oYmV0YV8xKSxcbiAgICBzZCA9IHNkKGJldGFfMSksXG4gICAgcTA1ID0gcXVhbnRpbGUoYmV0YV8xLCBwcm9icyA9IDAuMDUpLFxuICAgIHE5NSA9IHF1YW50aWxlKGJldGFfMSwgcHJvYnMgPSAwLjk1KVxuICApXG5gYGAifQ== -->
+<pre class="r"><code># n = 1000
+# Empirical 
+empirical_norm &lt;- sapply(thousand_samples, get_beta) %&gt;% 
+  tibble(beta_1 = .) %&gt;% 
+  summarize(
+    parameter = &quot;empirical (normal)&quot;,
+    mean = mean(beta_1),
+    sd = sd(beta_1),
+    q05 = quantile(beta_1, probs = 0.05),
+    q95 = quantile(beta_1, probs = 0.95)
+  )
+
+empirical_unif &lt;- sapply(thousand_samples, get_beta) %&gt;% 
+  tibble(beta_1 = .) %&gt;% 
+  summarize(
+    parameter = &quot;empirical (uniform)&quot;,
+    mean = mean(beta_1),
+    sd = sd(beta_1),
+    q05 = quantile(beta_1, probs = 0.05),
+    q95 = quantile(beta_1, probs = 0.95)
+  )</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="how-does-changing-the-variance-of-x_1-and-x_2-and-e_i-affect-the-results-can-you-provide-a-relative-precise-quantification" class="section level2">
+<h2>6. How does changing the variance of <span class="math inline">\(x_1\)</span> and <span class="math inline">\(x_2\)</span> and <span class="math inline">\(e_i\)</span> affect the results? Can you provide a relative precise quantification?</h2>
+<p>The standard error of <span class="math inline">\(\widehat{\beta}_1\)</span> is given as above in terms of <span class="math inline">\(\sqrt{(\sigma^2 /n) / var(x_1)) } = \sqrt{\sigma^2} \sqrt{1/n} \sqrt{1/var(x_1)}\)</span>. If <span class="math inline">\(x_2\)</span> were correlated with <span class="math inline">\(x_1\)</span> it would also enter this consideration, but here changes in <span class="math inline">\(x_2\)</span> do not affect <span class="math inline">\(\widehat{\beta}_1\)</span>.</p>
+<p>Thus, the standard error of <span class="math inline">\(\widehat{\beta}_1\)</span> is inversely related to changes in the variance of <span class="math inline">\(x_1\)</span> and directly related to changes in the variance of <span class="math inline">\(e\)</span>. Both do not change linearly, but by a function of the power of 2.</p>
+<!-- rnb-text-end -->
+</div>
 <div class="footnotes">
 <hr />
 <ol>
@@ -390,7 +473,7 @@ sapply(thousand_samples_unif, get_beta) %&gt;%
 </ol>
 </div>
 
-<div id="rmd-source-code">LS0tCnRpdGxlOiAnRXhlcmNpc2VzOiBXZWVrIDEnCnN1YnRpdGxlOiAiRWNvbm9tZXRyaWNzIFByb2YuIENvbmxvbiIKYXV0aG9yOiAiVWxyaWNoIEF0eiIKZGF0ZTogJzIwMjEtMDItMDInCm91dHB1dDoKICBwZGZfZG9jdW1lbnQ6IAogICAga2VlcF90ZXg6IGZhbHNlCiAgICBmaWdfY2FwdGlvbjogdHJ1ZQotLS0KCmBgYHtyIG1lc3NhZ2U9Rn0KbGlicmFyeSh0aWR5dmVyc2UpCmxpYnJhcnkoYnJvb20pCmBgYAoKMS4gTGV0J3Mgc3RhcnQgYnkgd3JpdGluZyBhIGZ1bmN0aW9uIHRoYXQgZ2VuZXJhdGVzIGZha2UgZGF0YSAKCiQkCnlfaSA9IFxiZXRhXzAgKyBcYmV0YV8xIHhfe2kxfSArIFxiZXRhXzIgeF97aTJ9ICsgZV9pCiQkCgpgYGB7cn0KIyBTZXQgc29tZSBkZWZhdWx0IHZhbHVlcwpuX29icyA8LSAxZTMKYmV0YSA8LSAxOjMKeDFfdmFyIDwtIDAuNQp4Ml92YXIgPC0gMS41CmVfdmFyIDwtIDIKCiMgQXNzdW1lIGNlbnRlcmVkIG1lYW5zIGZvciBzaW1wbGljaXR5CgpnZW5lcmF0ZV9zYW1wbGUgPC0gZnVuY3Rpb24obl9vYnMsIGJldGEsIHgxX3ZhciwgeDJfdmFyLCBlX3ZhciwgZV90eXBlKXsKICB4MSA8LSBybm9ybShuX29icywgc2QgPSBzcXJ0KHgxX3ZhcikpCiAgeDIgPC0gcm5vcm0obl9vYnMsIHNkID0gc3FydCh4Ml92YXIpKQogIGlmIChlX3R5cGUgPT0gIm5vcm1hbCIpIHtlICA8LSBybm9ybShuX29icywgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHNkID0gc3FydChlX3ZhcikpfSAKICBpZiAoZV90eXBlID09ICJ1bmlmb3JtIikge2UgIDwtIHJ1bmlmKG5fb2JzLCAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIG1pbiA9IC1zcXJ0KGVfdmFyKjEyKS8yLCAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIG1heCA9ICBzcXJ0KGVfdmFyKjEyKS8yKX0gCiAgICB5IDwtIGJldGFbMV0gKyBiZXRhWzJdKngxICsgYmV0YVszXSp4MiArIGUKICBzYW1wbGUgPC0gdGliYmxlKHksIHgxLCB4MikKICByZXR1cm4oc2FtcGxlKSAKfQpgYGAKCkkgZGVyaXZlIHRoZSBjb3JyZWN0IHVuaWZvcm0gbG93ZXIgYW5kIHVwcGVyIGJvdW5kcyBmcm9tIHRoZSB2YXJpYW5jZSBmb3JtdWxhOiBeW1VuaWZvcm0gdmFyaWFuY2UgdmlhIGh0dHBzOi8vd3d3LnN0YXRsZWN0LmNvbS9wcm9iYWJpbGl0eS1kaXN0cmlidXRpb25zL3VuaWZvcm0tZGlzdHJpYnV0aW9uXQoKJCQgVmFyW1hfe3VuaWZvcm19XSA9IEVbWF4yXSAtIEVbWF1eMiA9IFxmcmFjeyhiLWEpXjJ9ezEyfSQkCmBgYHtyfQpzYW1wbGUgPC0gZ2VuZXJhdGVfc2FtcGxlKG5fb2JzLCBiZXRhLCB4MV92YXIsIHgyX3ZhciwgZV92YXIsIGVfdHlwZSA9ICJub3JtYWwiKQpgYGAKClRoZSBmdW5jdGlvbiBzaG91bGQgdGFrZSB0aGUgZm9sbG93aW5nIGFyZ3VtZW50czoKCiAgKiBuX29iczogbnVtYmVyIG9mIG9ic2VydmF0aW9ucyBpbiB0aGUgc2FtcGxlCiAgKiBiZXRhIDogYSB2ZWN0b3Igb2YgY29lZmZpY2llbnRzCiAgKiB4MV92YXI6IGEgdmFyaWFuY2Uvc2NhbGUgcGFyYW1ldGVyIGZvciB4MQogICogeDJfdmFyOiBhIHZhcmlhbmNlL3NjYWxlIHBhcmFtZXRlciBmb3IgeDIKICAqIGVfdmFyOiBhIHZhcmlhbmNlL3NjYWxlIHBhcmFtZXRlciBmb3IgZV9pCiAgKiBlX3R5cGU6IGEgZGlzdHJpYnV0aW9uIHR5cGUgZm9yIHRoZSByZXNpZHVhbCAobWF5YmUgdW5pZm9ybSBvciBub3JtYWw/KQogCjIuIE5vdyBsZXQncyB3cml0ZSBhIGZ1bmN0aW9uIHRoYXQgdGFrZXMgdGhlIHNhbWUgYXJndW1lbnRzIGFuZCBhbHNvIHRha2VzIGFzIGFuIGFyZ3VtZW50IHRoZSBudW1iZXIgb2Ygc2ltdWxhdGVkIGRhdGFzZXRzIChzYXkgMTAwMD8pCgpgYGB7cn0KIyBBc3N1bWUgY2VudGVyZWQgbWVhbnMgZm9yIHNpbXBsaWNpdHkKZ2VuX25fc2FtcGxlcyA8LSBmdW5jdGlvbihyZXBzID0gMWUzLCBlX3R5cGUpewogc2FtcGxlcyA8LSByZXBsaWNhdGUocmVwcywgCiAgICAgICAgICAgICAgZ2VuZXJhdGVfc2FtcGxlKG5fb2JzLCBiZXRhLCB4MV92YXIsIHgyX3ZhciwgZV92YXIsIGVfdHlwZSksCiAgICAgICAgICAgICAgc2ltcGxpZnkgPSBGQUxTRSkKIHJldHVybihzYW1wbGVzKQp9CmBgYAoKYGBge3J9Cmh1bmRyZWRfc2FtcGxlcyA8LSBnZW5fbl9zYW1wbGVzKDEwMCwgZV90eXBlID0gIm5vcm1hbCIpCmh1bmRyZWRfc2FtcGxlc191bmlmIDwtIGdlbl9uX3NhbXBsZXMoMTAwLCBlX3R5cGUgPSAidW5pZm9ybSIpCgp0aG91c2FuZF9zYW1wbGVzIDwtIGdlbl9uX3NhbXBsZXMoZV90eXBlID0gIm5vcm1hbCIpCnRob3VzYW5kX3NhbXBsZXNfdW5pZiAgPC0gZ2VuX25fc2FtcGxlcyhlX3R5cGUgPSAidW5pZm9ybSIpCmBgYAoKMy4gTGV0J3Mgd3JpdGUgYSBmdW5jdGlvbiB0aGF0IHRha2VzIGluIGEgc2luZ2xlIGRhdGFzZXQgYW5kIHJ1bnMgYSByZWdyZXNzaW9uIGFuZCBjYWxjdWxhdGVzIHRoZSBvdXRwdXQgKGxldCdzIGtlZXAgdGhlIGVzdGltYXRlcyBvZiAkXHdpZGVoYXR7XGJldGF9JCBhbmQgaXQncyBzdGFuZGFyZCBlcnJvciwgJFJeMiQsICRNU0UkLCBhbmQgbGV0J3MgZXZhbHVhdGUgdGhlIGEgdC1zdGF0aXN0aWMgZm9yIHRoZSBoeXBvdGhlc2lzIHRoYXQgJEhfMDogXGJldGE9YSQgZm9yIHNvbWUgY2hvaWNlIG9mICRhJCkuIEl0IHdpbGwgYmUgaGVscGZ1bCB0byByZXR1cm4gZXZlcnl0aGluZyBpbiBhIGRhdGEgZnJhbWUuCgpgYGB7cn0KcmVnX291dCA8LSBmdW5jdGlvbihzYW1wbGUsIGEgPSByZXAoMCwzKSkgewogIGVzdCA8LSBsbSh5IH4geDEgKyB4MiwgZGF0YSA9IHNhbXBsZSkKICBlc3Rfb3V0IDwtIHRpZHkoZXN0KSAlPiUgCiAgICBtdXRhdGUoY3VzdG9tX3QgPSAoZXN0JGNvZWZmaWNpZW50cyAtIGEpIC8gc3FydChkaWFnKHZjb3YoZXN0KSkpLAogICAgICAgICAgIHIyID0gc3VtbWFyeShlc3QpJHIuc3F1YXJlZCwKICAgICAgICAgICBtc2UgPSBtZWFuKGVzdCRyZXNpZHVhbHNeMikpCiAgcmV0dXJuKGVzdF9vdXQpCn0KYGBgCgpgYGB7cn0KcmVnX291dCh0aG91c2FuZF9zYW1wbGVzW1sxXV0sIDA6MikKYGBgCgoKNC4gUGxvdCB0aGUgZGlzdHJpYnV0aW9uIG9mICRcd2lkZWhhdHtcYmV0YX1fMSQgd2hlbiB0aGUgc2FtcGxlIHNpemUgaXMgJG49MTAwJCBhbmQgc2VlIGhvdyBpdCBjb21wYXJlcyB3aGVuICRlX2kkIGlzIHVuaWZvcm0gdnMuIHdoZW4gaXQgaXMgbm9ybWFsIGFjcm9zcyB0aGUgMTAwMCBzYW1wbGVzLgoKYGBge3J9CmdldF9iZXRhIDwtIGZ1bmN0aW9uKHgpewogIHRtcCA8LSByZWdfb3V0KHgpICU+JSAKICAgIHB1bGwoZXN0aW1hdGUpICU+JSAKICAgIG50aCgyKSAjIGJldGExCn0KICAKc2FwcGx5KGh1bmRyZWRfc2FtcGxlcywgZ2V0X2JldGEpICU+JSAKICBoaXN0KG1haW4gPSAiQmV0YV8xIGhpc3RvZ3JhbSBmb3IgTiA9IDEwMCIsIGJyZWFrcyA9IDIwKQoKc2FwcGx5KGh1bmRyZWRfc2FtcGxlc191bmlmLCBnZXRfYmV0YSkgJT4lIAogIGhpc3QobWFpbiA9ICJCZXRhXzEgaGlzdG9ncmFtIGZvciBOID0gMTAwICh1bmlmb3JtIGVycm9ycykiLCBicmVha3MgPSAyMCkKCnNhcHBseSh0aG91c2FuZF9zYW1wbGVzLCBnZXRfYmV0YSkgJT4lIAogIGhpc3QobWFpbiA9ICJCZXRhXzEgaGlzdG9ncmFtIGZvciBOID0gMTAwMCIsIGJyZWFrcyA9IDIwKQoKc2FwcGx5KHRob3VzYW5kX3NhbXBsZXNfdW5pZiwgZ2V0X2JldGEpICU+JSAKICBoaXN0KG1haW4gPSAiQmV0YV8xIGhpc3RvZ3JhbSBmb3IgTiA9IDEwMDAgKHVuaWZvcm0gZXJyb3JzKSIsIGJyZWFrcyA9IDIwKQpgYGAKCgo1LiBNYWtlIGEgdGFibGUgdGhhdCBzaG93cyBob3cgJFx3aWRlaGF0e1xiZXRhfV8xJCBhbmQgY29tcHV0ZXMgdGhlIG1lYW4sIHRoZSBzdGFuZGFyZCBkZXZpYXRpb24sIHRoZSA1dGggYW5kIDk1dGggcGVyY2VudGlsZSwgYW5kIGNvbXBhcmUgdGhhdCB0byB0aGUgYXN5bXB0b3RpYyBzdGFuZGFyZCBlcnJvciB1bmRlciBkaWZmZXJlbnQgYXNzdW1wdGlvbnMgYWJvdXQgdGhlIGVycm9yIGRpc3RyaWJ1dGlvbi4KCgoKNi4gSG93IGRvZXMgY2hhbmdpbmcgdGhlIHZhcmlhbmNlIG9mICR4XzEkIGFuZCAkeF8yJCBhbmQgJGVfaSQgYWZmZWN0IHRoZSByZXN1bHRzPyBDYW4geW91IHByb3ZpZGUgYSByZWxhdGl2ZSBwcmVjaXNlIHF1YW50aWZpY2F0aW9uPwo=</div>
+<div id="rmd-source-code">LS0tCnRpdGxlOiAnRXhlcmNpc2VzOiBXZWVrIDEnCnN1YnRpdGxlOiAiRWNvbm9tZXRyaWNzIFByb2YuIENvbmxvbiIKYXV0aG9yOiAiVWxyaWNoIEF0eiIKZGF0ZTogJzIwMjEtMDItMDInCm91dHB1dDoKICBwZGZfZG9jdW1lbnQ6IAogICAga2VlcF90ZXg6IGZhbHNlCiAgICBmaWdfY2FwdGlvbjogdHJ1ZQotLS0KCmBgYHtyIG1lc3NhZ2U9Rn0KbGlicmFyeSh0aWR5dmVyc2UpCmxpYnJhcnkoYnJvb20pCmBgYAoKIyMgMS4gTGV0J3Mgc3RhcnQgYnkgd3JpdGluZyBhIGZ1bmN0aW9uIHRoYXQgZ2VuZXJhdGVzIGZha2UgZGF0YSAKCiQkCnlfaSA9IFxiZXRhXzAgKyBcYmV0YV8xIHhfe2kxfSArIFxiZXRhXzIgeF97aTJ9ICsgZV9pCiQkCgpgYGB7cn0KIyBSZXByb2R1Y2UKc2V0LnNlZWQoMjAyMTAyKQoKIyBTZXQgc29tZSBkZWZhdWx0IHZhbHVlcwpuX29icyA8LSAxZTMKYmV0YSA8LSAxOjMKeDFfdmFyIDwtIDAuNQp4Ml92YXIgPC0gMS41CmVfdmFyIDwtIDIKCiMgQXNzdW1lIGNlbnRlcmVkIG1lYW5zIGZvciBzaW1wbGljaXR5CmdlbmVyYXRlX3NhbXBsZSA8LSBmdW5jdGlvbihuX29icywgYmV0YSwgeDFfdmFyLCB4Ml92YXIsIGVfdmFyLCBlX3R5cGUpewogIHgxIDwtIHJub3JtKG5fb2JzLCBzZCA9IHNxcnQoeDFfdmFyKSkKICB4MiA8LSBybm9ybShuX29icywgc2QgPSBzcXJ0KHgyX3ZhcikpCiAgaWYgKGVfdHlwZSA9PSAibm9ybWFsIikge2UgIDwtIHJub3JtKG5fb2JzLCAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc2QgPSBzcXJ0KGVfdmFyKSl9IAogIGlmIChlX3R5cGUgPT0gInVuaWZvcm0iKSB7ZSAgPC0gcnVuaWYobl9vYnMsIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgbWluID0gLXNxcnQoZV92YXIqMTIpLzIsIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgbWF4ID0gIHNxcnQoZV92YXIqMTIpLzIpfSAKICAgIHkgPC0gYmV0YVsxXSArIGJldGFbMl0qeDEgKyBiZXRhWzNdKngyICsgZQogIHNhbXBsZSA8LSB0aWJibGUoeSwgeDEsIHgyKQogIHJldHVybihzYW1wbGUpIAp9CmBgYAoKSSBkZXJpdmUgdGhlIGNvcnJlY3QgdW5pZm9ybSBsb3dlciBhbmQgdXBwZXIgYm91bmRzIGZyb20gdGhlIHZhcmlhbmNlIGZvcm11bGE6IF5bVW5pZm9ybSB2YXJpYW5jZSB2aWEgaHR0cHM6Ly93d3cuc3RhdGxlY3QuY29tL3Byb2JhYmlsaXR5LWRpc3RyaWJ1dGlvbnMvdW5pZm9ybS1kaXN0cmlidXRpb25dCgokJCBWYXJbWF97dW5pZm9ybX1dID0gRVtYXjJdIC0gRVtYXV4yID0gXGZyYWN7KGItYSleMn17MTJ9JCQKYGBge3J9CnNhbXBsZSA8LSBnZW5lcmF0ZV9zYW1wbGUobl9vYnMsIGJldGEsIHgxX3ZhciwgeDJfdmFyLCBlX3ZhciwgZV90eXBlID0gIm5vcm1hbCIpICMgdGVzdApgYGAKClRoZSBmdW5jdGlvbiBzaG91bGQgdGFrZSB0aGUgZm9sbG93aW5nIGFyZ3VtZW50czoKCiAgKiBuX29iczogbnVtYmVyIG9mIG9ic2VydmF0aW9ucyBpbiB0aGUgc2FtcGxlCiAgKiBiZXRhIDogYSB2ZWN0b3Igb2YgY29lZmZpY2llbnRzCiAgKiB4MV92YXI6IGEgdmFyaWFuY2Uvc2NhbGUgcGFyYW1ldGVyIGZvciB4MQogICogeDJfdmFyOiBhIHZhcmlhbmNlL3NjYWxlIHBhcmFtZXRlciBmb3IgeDIKICAqIGVfdmFyOiBhIHZhcmlhbmNlL3NjYWxlIHBhcmFtZXRlciBmb3IgZV9pCiAgKiBlX3R5cGU6IGEgZGlzdHJpYnV0aW9uIHR5cGUgZm9yIHRoZSByZXNpZHVhbCAobWF5YmUgdW5pZm9ybSBvciBub3JtYWw/KQogCiMjIDIuIE5vdyBsZXQncyB3cml0ZSBhIGZ1bmN0aW9uIHRoYXQgdGFrZXMgdGhlIHNhbWUgYXJndW1lbnRzIGFuZCBhbHNvIHRha2VzIGFzIGFuIGFyZ3VtZW50IHRoZSBudW1iZXIgb2Ygc2ltdWxhdGVkIGRhdGFzZXRzIChzYXkgMTAwMD8pCgpgYGB7cn0Kc2ltX25fc2FtcGxlcyA8LSBmdW5jdGlvbihyZXBzID0gMWUzLCBlX3R5cGUpewogc2FtcGxlcyA8LSByZXBsaWNhdGUocmVwcywgCiAgICAgICAgICAgICAgZ2VuZXJhdGVfc2FtcGxlKG5fb2JzLCBiZXRhLCB4MV92YXIsIHgyX3ZhciwgZV92YXIsIGVfdHlwZSksCiAgICAgICAgICAgICAgc2ltcGxpZnkgPSBGQUxTRSkKIHJldHVybihzYW1wbGVzKQp9CmBgYAoKYGBge3J9Cmh1bmRyZWRfc2FtcGxlcyA8LSBzaW1fbl9zYW1wbGVzKDEwMCwgZV90eXBlID0gIm5vcm1hbCIpCmh1bmRyZWRfc2FtcGxlc191bmlmIDwtIHNpbV9uX3NhbXBsZXMoMTAwLCBlX3R5cGUgPSAidW5pZm9ybSIpCgp0aG91c2FuZF9zYW1wbGVzIDwtIHNpbV9uX3NhbXBsZXMoZV90eXBlID0gIm5vcm1hbCIpCnRob3VzYW5kX3NhbXBsZXNfdW5pZiAgPC0gc2ltX25fc2FtcGxlcyhlX3R5cGUgPSAidW5pZm9ybSIpCmBgYAoKIyMgMy4gTGV0J3Mgd3JpdGUgYSBmdW5jdGlvbiB0aGF0IHRha2VzIGluIGEgc2luZ2xlIGRhdGFzZXQgYW5kIHJ1bnMgYSByZWdyZXNzaW9uIGFuZCBjYWxjdWxhdGVzIHRoZSBvdXRwdXQgKGxldCdzIGtlZXAgdGhlIGVzdGltYXRlcyBvZiAkXHdpZGVoYXR7XGJldGF9JCBhbmQgaXQncyBzdGFuZGFyZCBlcnJvciwgJFJeMiQsICRNU0UkLCBhbmQgbGV0J3MgZXZhbHVhdGUgdGhlIGEgdC1zdGF0aXN0aWMgZm9yIHRoZSBoeXBvdGhlc2lzIHRoYXQgJEhfMDogXGJldGE9YSQgZm9yIHNvbWUgY2hvaWNlIG9mICRhJCkuIEl0IHdpbGwgYmUgaGVscGZ1bCB0byByZXR1cm4gZXZlcnl0aGluZyBpbiBhIGRhdGEgZnJhbWUuCgpgYGB7cn0KcmVnX291dCA8LSBmdW5jdGlvbihzYW1wbGUsIGEgPSByZXAoMCwzKSkgewogIGVzdCA8LSBsbSh5IH4geDEgKyB4MiwgZGF0YSA9IHNhbXBsZSkKICBlc3Rfb3V0IDwtIHRpZHkoZXN0KSAlPiUgCiAgICBtdXRhdGUoY3VzdG9tX3QgPSAoZXN0JGNvZWZmaWNpZW50cyAtIGEpIC8gc3FydChkaWFnKHZjb3YoZXN0KSkpLAogICAgICAgICAgIHIyID0gc3VtbWFyeShlc3QpJHIuc3F1YXJlZCwKICAgICAgICAgICBtc2UgPSBtZWFuKGVzdCRyZXNpZHVhbHNeMikpCiAgcmV0dXJuKGVzdF9vdXQpCiAgIyBzcGxpdChlc3Rfb3V0LCBlc3Rfb3V0JHRlcm0pIC8vIGZvciBuZXh0IHRpbWUKfQpgYGAKCmBgYHtyfQpyZWdfb3V0KHRob3VzYW5kX3NhbXBsZXNbWzFdXSwgMDoyKSAjIHRlc3QKYGBgCgoKIyMgNC4gUGxvdCB0aGUgZGlzdHJpYnV0aW9uIG9mICRcd2lkZWhhdHtcYmV0YX1fMSQgd2hlbiB0aGUgc2FtcGxlIHNpemUgaXMgJG49MTAwJCBhbmQgc2VlIGhvdyBpdCBjb21wYXJlcyB3aGVuICRlX2kkIGlzIHVuaWZvcm0gdnMuIHdoZW4gaXQgaXMgbm9ybWFsIGFjcm9zcyB0aGUgMTAwMCBzYW1wbGVzLgoKYGBge3J9CmdldF9iZXRhIDwtIGZ1bmN0aW9uKHgpewogIHRtcCA8LSByZWdfb3V0KHgpICU+JSAKICAgIHB1bGwoZXN0aW1hdGUpICU+JSAKICAgIG50aCgyKSAjIGJldGExCn0KICAKc2FwcGx5KGh1bmRyZWRfc2FtcGxlcywgZ2V0X2JldGEpICU+JSAKICBoaXN0KG1haW4gPSAiQmV0YV8xIGhpc3RvZ3JhbSBmb3IgTiA9IDEwMCIsIGJyZWFrcyA9IDIwKQoKc2FwcGx5KGh1bmRyZWRfc2FtcGxlc191bmlmLCBnZXRfYmV0YSkgJT4lIAogIGhpc3QobWFpbiA9ICJCZXRhXzEgaGlzdG9ncmFtIGZvciBOID0gMTAwICh1bmlmb3JtIGVycm9ycykiLCBicmVha3MgPSAyMCkKCnNhcHBseSh0aG91c2FuZF9zYW1wbGVzLCBnZXRfYmV0YSkgJT4lIAogIGhpc3QobWFpbiA9ICJCZXRhXzEgaGlzdG9ncmFtIGZvciBOID0gMTAwMCIsIGJyZWFrcyA9IDIwKQoKc2FwcGx5KHRob3VzYW5kX3NhbXBsZXNfdW5pZiwgZ2V0X2JldGEpICU+JSAKICBoaXN0KG1haW4gPSAiQmV0YV8xIGhpc3RvZ3JhbSBmb3IgTiA9IDEwMDAgKHVuaWZvcm0gZXJyb3JzKSIsIGJyZWFrcyA9IDIwKQpgYGAKCgojIyA1LiBNYWtlIGEgdGFibGUgdGhhdCBzaG93cyBob3cgJFx3aWRlaGF0e1xiZXRhfV8xJCBhbmQgY29tcHV0ZXMgdGhlIG1lYW4sIHRoZSBzdGFuZGFyZCBkZXZpYXRpb24sIHRoZSA1dGggYW5kIDk1dGggcGVyY2VudGlsZSwgYW5kIGNvbXBhcmUgdGhhdCB0byB0aGUgYXN5bXB0b3RpYyBzdGFuZGFyZCBlcnJvciB1bmRlciBkaWZmZXJlbnQgYXNzdW1wdGlvbnMgYWJvdXQgdGhlIGVycm9yIGRpc3RyaWJ1dGlvbi4KClRoZSBhc3ltcHRvdGljIHZhcmlhbmNlIG9mICRcd2lkZWhhdHtcYmV0YX1fMSQgaXMgZXF1YWwgdG8gJChcc2lnbWFeMiAvIG4pIFFeey0xfSQgd2hlcmUgJFEkIGhlcmUgaXMgc2ltcGx5ICAkUSA9IHZhcih4XzEpJCBiZWNhdXNlICR4XzEkIGFuZCAkeF8yJCBhcmUgdW5jb3JyZWxhdGVkIGFuZCBoYXZlIG1lYW4gemVyby4KCgpgYGAge3J9CiMgbiA9IDEwMAojIEVtcGlyaWNhbCAKZW1waXJpY2FsX25vcm0gPC0gc2FwcGx5KGh1bmRyZWRfc2FtcGxlcywgZ2V0X2JldGEpICU+JSAKICB0aWJibGUoYmV0YV8xID0gLikgJT4lIAogIHN1bW1hcml6ZSgKICAgIHBhcmFtZXRlciA9ICJlbXBpcmljYWwgKG5vcm1hbCkiLAogICAgbWVhbiA9IG1lYW4oYmV0YV8xKSwKICAgIHNkID0gc2QoYmV0YV8xKSwKICAgIHEwNSA9IHF1YW50aWxlKGJldGFfMSwgcHJvYnMgPSAwLjA1KSwKICAgIHE5NSA9IHF1YW50aWxlKGJldGFfMSwgcHJvYnMgPSAwLjk1KQogICkKCmVtcGlyaWNhbF91bmlmIDwtIHNhcHBseShodW5kcmVkX3NhbXBsZXNfdW5pZiwgZ2V0X2JldGEpICU+JSAKICB0aWJibGUoYmV0YV8xID0gLikgJT4lIAogIHN1bW1hcml6ZSgKICAgIHBhcmFtZXRlciA9ICJlbXBpcmljYWwgKHVuaWZvcm0pIiwKICAgIG1lYW4gPSBtZWFuKGJldGFfMSksCiAgICBzZCA9IHNkKGJldGFfMSksCiAgICBxMDUgPSBxdWFudGlsZShiZXRhXzEsIHByb2JzID0gMC4wNSksCiAgICBxOTUgPSBxdWFudGlsZShiZXRhXzEsIHByb2JzID0gMC45NSkKICApCgoKIyBUaGVvcmV0aWNhbAp0aGVvcmV0aWNhbCA8LSB0aWJibGUoCiAgcGFyYW1ldGVyID0gInRoZW9yZXRpY2FsIiwKICBtZWFuID0gYmV0YVsyXSwKICBzZCA9IHNxcnQoZV92YXIgLyAxMDAgLyB4MV92YXIpLAogIHEwNSA9IHFub3JtKDAuMDUsIG1lYW4gPSBtZWFuLCBzZCA9IHNkKSwKICBxOTUgPSBxbm9ybSgwLjk1LCBtZWFuID0gbWVhbiwgc2QgPSBzZCkKKQoKYmluZF9yb3dzKGVtcGlyaWNhbF9ub3JtLCBlbXBpcmljYWxfdW5pZiwgdGhlb3JldGljYWwpCmBgYAoKCmBgYCB7cn0KIyBuID0gMTAwMAojIEVtcGlyaWNhbCAKZW1waXJpY2FsX25vcm0gPC0gc2FwcGx5KHRob3VzYW5kX3NhbXBsZXMsIGdldF9iZXRhKSAlPiUgCiAgdGliYmxlKGJldGFfMSA9IC4pICU+JSAKICBzdW1tYXJpemUoCiAgICBwYXJhbWV0ZXIgPSAiZW1waXJpY2FsIChub3JtYWwpIiwKICAgIG1lYW4gPSBtZWFuKGJldGFfMSksCiAgICBzZCA9IHNkKGJldGFfMSksCiAgICBxMDUgPSBxdWFudGlsZShiZXRhXzEsIHByb2JzID0gMC4wNSksCiAgICBxOTUgPSBxdWFudGlsZShiZXRhXzEsIHByb2JzID0gMC45NSkKICApCgplbXBpcmljYWxfdW5pZiA8LSBzYXBwbHkodGhvdXNhbmRfc2FtcGxlc191bmlmLCBnZXRfYmV0YSkgJT4lIAogIHRpYmJsZShiZXRhXzEgPSAuKSAlPiUgCiAgc3VtbWFyaXplKAogICAgcGFyYW1ldGVyID0gImVtcGlyaWNhbCAodW5pZm9ybSkiLAogICAgbWVhbiA9IG1lYW4oYmV0YV8xKSwKICAgIHNkID0gc2QoYmV0YV8xKSwKICAgIHEwNSA9IHF1YW50aWxlKGJldGFfMSwgcHJvYnMgPSAwLjA1KSwKICAgIHE5NSA9IHF1YW50aWxlKGJldGFfMSwgcHJvYnMgPSAwLjk1KQogICkKCiMgVGhlb3JldGljYWwKdGhlb3JldGljYWwgPC0gdGliYmxlKAogIHBhcmFtZXRlciA9ICJ0aGVvcmV0aWNhbCIsCiAgbWVhbiA9IGJldGFbMl0sCiAgc2QgPSBzcXJ0KGVfdmFyIC8gMTAwMCAvIHgxX3ZhciksCiAgcTA1ID0gcW5vcm0oMC4wNSwgbWVhbiA9IG1lYW4sIHNkID0gc2QpLAogIHE5NSA9IHFub3JtKDAuOTUsIG1lYW4gPSBtZWFuLCBzZCA9IHNkKQopCgpiaW5kX3Jvd3MoZW1waXJpY2FsX25vcm0sIGVtcGlyaWNhbF91bmlmLCB0aGVvcmV0aWNhbCkKYGBgCgojIyA2LiBIb3cgZG9lcyBjaGFuZ2luZyB0aGUgdmFyaWFuY2Ugb2YgJHhfMSQgYW5kICR4XzIkIGFuZCAkZV9pJCBhZmZlY3QgdGhlIHJlc3VsdHM/IENhbiB5b3UgcHJvdmlkZSBhIHJlbGF0aXZlIHByZWNpc2UgcXVhbnRpZmljYXRpb24/CgpUaGUgc3RhbmRhcmQgZXJyb3Igb2YgJFx3aWRlaGF0e1xiZXRhfV8xJCBpcyBnaXZlbiBhcyBhYm92ZSBpbiB0ZXJtcyBvZiAkXHNxcnR7KFxzaWdtYV4yIC9uKSAvIHZhcih4XzEpKSB9ID0gXHNxcnR7XHNpZ21hXjJ9IFxzcXJ0ezEvbn0gXHNxcnR7MS92YXIoeF8xKX0kLiBJZiAkeF8yJCB3ZXJlIGNvcnJlbGF0ZWQgd2l0aCAkeF8xJCBpdCB3b3VsZCBhbHNvIGVudGVyIHRoaXMgY29uc2lkZXJhdGlvbiwgYnV0IGhlcmUgY2hhbmdlcyBpbiAkeF8yJCBkbyBub3QgYWZmZWN0ICRcd2lkZWhhdHtcYmV0YX1fMSQuIAoKVGh1cywgdGhlIHN0YW5kYXJkIGVycm9yIG9mICRcd2lkZWhhdHtcYmV0YX1fMSQgaXMgaW52ZXJzZWx5IHJlbGF0ZWQgdG8gY2hhbmdlcyBpbiB0aGUgdmFyaWFuY2Ugb2YgJHhfMSQgYW5kIGRpcmVjdGx5IHJlbGF0ZWQgdG8gY2hhbmdlcyBpbiB0aGUgdmFyaWFuY2Ugb2YgJGUkLiBCb3RoIGRvIG5vdCBjaGFuZ2UgbGluZWFybHksIGJ1dCBieSBhIGZ1bmN0aW9uIG9mIHRoZSBwb3dlciBvZiAyLiAKCg==</div>
 
 
 

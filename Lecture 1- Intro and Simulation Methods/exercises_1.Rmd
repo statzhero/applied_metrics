@@ -14,13 +14,16 @@ library(tidyverse)
 library(broom)
 ```
 
-1. Let's start by writing a function that generates fake data 
+## 1. Let's start by writing a function that generates fake data 
 
 $$
 y_i = \beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + e_i
 $$
 
 ```{r}
+# Reproduce
+set.seed(202102)
+
 # Set some default values
 n_obs <- 1e3
 beta <- 1:3
@@ -59,7 +62,7 @@ The function should take the following arguments:
   * e_var: a variance/scale parameter for e_i
   * e_type: a distribution type for the residual (maybe uniform or normal?)
  
-2. Now let's write a function that takes the same arguments and also takes as an argument the number of simulated datasets (say 1000?)
+## 2. Now let's write a function that takes the same arguments and also takes as an argument the number of simulated datasets (say 1000?)
 
 ```{r}
 sim_n_samples <- function(reps = 1e3, e_type){
@@ -78,7 +81,7 @@ thousand_samples <- sim_n_samples(e_type = "normal")
 thousand_samples_unif  <- sim_n_samples(e_type = "uniform")
 ```
 
-3. Let's write a function that takes in a single dataset and runs a regression and calculates the output (let's keep the estimates of $\widehat{\beta}$ and it's standard error, $R^2$, $MSE$, and let's evaluate the a t-statistic for the hypothesis that $H_0: \beta=a$ for some choice of $a$). It will be helpful to return everything in a data frame.
+## 3. Let's write a function that takes in a single dataset and runs a regression and calculates the output (let's keep the estimates of $\widehat{\beta}$ and it's standard error, $R^2$, $MSE$, and let's evaluate the a t-statistic for the hypothesis that $H_0: \beta=a$ for some choice of $a$). It will be helpful to return everything in a data frame.
 
 ```{r}
 reg_out <- function(sample, a = rep(0,3)) {
@@ -97,7 +100,7 @@ reg_out(thousand_samples[[1]], 0:2) # test
 ```
 
 
-4. Plot the distribution of $\widehat{\beta}_1$ when the sample size is $n=100$ and see how it compares when $e_i$ is uniform vs. when it is normal across the 1000 samples.
+## 4. Plot the distribution of $\widehat{\beta}_1$ when the sample size is $n=100$ and see how it compares when $e_i$ is uniform vs. when it is normal across the 1000 samples.
 
 ```{r}
 get_beta <- function(x){
@@ -120,9 +123,9 @@ sapply(thousand_samples_unif, get_beta) %>%
 ```
 
 
-5. Make a table that shows how $\widehat{\beta}_1$ and computes the mean, the standard deviation, the 5th and 95th percentile, and compare that to the asymptotic standard error under different assumptions about the error distribution.
+## 5. Make a table that shows how $\widehat{\beta}_1$ and computes the mean, the standard deviation, the 5th and 95th percentile, and compare that to the asymptotic standard error under different assumptions about the error distribution.
 
-The asymptotic variance of $\widehat{\beta}$ is equal to $(\sigma^2 / n) Q^{-1}$ where $Q$ here is simply  $Q = var(x_1)$ because $x_1$ and $x_2$ are uncorrelated and have mean zero.
+The asymptotic variance of $\widehat{\beta}_1$ is equal to $(\sigma^2 / n) Q^{-1}$ where $Q$ here is simply  $Q = var(x_1)$ because $x_1$ and $x_2$ are uncorrelated and have mean zero.
 
 
 ``` {r}
@@ -197,4 +200,9 @@ theoretical <- tibble(
 bind_rows(empirical_norm, empirical_unif, theoretical)
 ```
 
-6. How does changing the variance of $x_1$ and $x_2$ and $e_i$ affect the results? Can you provide a relative precise quantification?
+## 6. How does changing the variance of $x_1$ and $x_2$ and $e_i$ affect the results? Can you provide a relative precise quantification?
+
+The standard error of $\widehat{\beta}_1$ is given as above in terms of $\sqrt{(\sigma^2 /n) / var(x_1)) } = \sqrt{\sigma^2} \sqrt{1/n} \sqrt{1/var(x_1)}$. If $x_2$ were correlated with $x_1$ it would also enter this consideration, but here changes in $x_2$ do not affect $\widehat{\beta}_1$. 
+
+Thus, the standard error of $\widehat{\beta}_1$ is inversely related to changes in the variance of $x_1$ and directly related to changes in the variance of $e$. Both do not change linearly, but by a function of the power of 2. 
+
