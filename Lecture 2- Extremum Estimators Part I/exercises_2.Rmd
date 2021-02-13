@@ -1,77 +1,302 @@
 ---
 title: 'Exercises: Week 2'
-author: "Prof. Conlon"
-date: 'Due: 2/8/21'
+subtitle: "Econometrics Prof. Conlon"
+author: "Ulrich Atz"
+date: '2021-02-09'
 output:
-  pdf_document: default
-  html_notebook: default
+  pdf_document: 
+    keep_tex: false
+    fig_caption: true
 ---
 
-1. Let's load the Boston HMDA data.
+```{r packages, message=F}
+library(tidyverse)
+set.seed(202102)
+# Hashtag NOLOOPS
+```
+
+
+### 1. Let's load the Boston HMDA data (silently).
 
 The function should take the following arguments:
 
-  * dir: debt to income ratio
-  * hir : housing to income ratio
-  * single : dummy for single borrower
-  * self : dummy for self-employed
+-   dir : debt to income ratio
+-   hir : housing to income ratio
+-   single : dummy for single borrower
+-   self : dummy for self-employed
 
- 
-```{r}
+```{r, include=F}
 library("Ecdat")
 data("Hmda")
 
-probit <- glm(deny ~ dir + hir + single + self, data = Hmda, family = binomial(link = "probit"))
+probit <- glm(deny ~ dir + hir + single + self, data = Hmda,   family = binomial(link = "probit"))
 logit <- glm(deny ~ dir + hir + single + self, data = Hmda, family = binomial(link = "logit"))
+# Bonus: linear probability model
+lpm <- glm(as.numeric(deny) ~ dir + hir + single + self, data = Hmda)
 
-summary(logit)
+models <- list(probit, logit, lpm)
+
+map(models, margins::margins_summary)
+
 ```
 
-2. Consider the regression model of the logit regression:
-$$
-deny_i = F(\beta_1\cdot dir_i + \beta_2\cdot hir_i + \beta_3\cdot single_i + \beta_4 \cdot self_i)
-$$
+### 2. Consider the regression model of the logit regression:
+
 For a single observation compute the contribution to the log-likelihood (analytically)
+$$ deny_i = F(\beta_1\cdot dir_i + \beta_2\cdot hir_i + \beta_3\cdot single_i + \beta_4 \cdot self_i) $$
 
-3. For a single observation compute the Score (analytically).
+The link for the logit is the logistic function: $F(X, \beta)= \frac{e^{X' \beta}}{1+ e^{X'\beta}} = \frac{1}{1+ e^{-X'\beta}}$
 
-4. Compute the Hessian Matrix and Fisher information (analytically).
+The log-likelihood of a single observation for the logit model is: 
+$$\ell_i(y_i | \beta)=  y_i \ln (F(X_i, \beta)) + (1-y_i) \ln(1- F(X_i, \beta))$$
 
-5. Code up the Fisher Information for the logit model above $I(\widehat{\beta})$ using the Hessian Matrix.
+``` {r}
+# Get beta hats from regression output and add constant
+vars <- c("dir", "hir", "single", "self")
+x_i <- matrix(c(1, as.numeric(Hmda[1, vars])), ncol = 1)
+dv_i <- as.numeric(Hdma[1, "deny"])
 
-6. Code up the Fisher Information for the logit model above $I(\widehat{\beta})$ using the score method.
+# Model parameters
+betas <- logit$coefficients
+n <- nrow(Hmda)
 
-7. Compute the standard errors from the Fisher information and compare them to the standard errors reported from the regression. How do they compare?
+# Logistic function
+lgc <- function(x){ as.numeric(1 / (1 + exp(-x)))}
+Fn <- log(lgc(t(x_i) %*% betas))
 
-8. Generate $n=100$ observations where $\lambda = 15$ from a poisson model:
+# Log-likelihood
+llik_i <- function(dv_i, x_i, betas) {
+  l = (dv_i * Fn) + (1 - dv_i) * log(1 - Fn)
+  cat("The log-likelihood value for individual 1 is:", l)
+  }
+
+llik_i(dv_i, x_i, betas)
+```
+
+
+### 3.  For a single observation compute the Score (analytically).
+
+The contribution of a single observation to the log-likelihood for the logit is the score $i$, where $f(X_i, \beta) = f(Z_i)$ is the derivative:
+
+$$ \mathcal{S}_i(X_i, \beta) = {S}_i(Z_i) = \frac{\partial \ln f(Z_i)}{\partial \beta}  =  \frac{y_i}{ F(Z_i)} \frac{ d F}{d \beta}(Z_i) - \frac{1-y_i}{1-F(Z_i)}  \frac{ d F}{d \beta} (Z_i) $$
+This simplifies to: 
+
+$$ \mathcal{S}_i(X_i, \beta) = (y_i - F(X_i, \beta)) X_i = (y_i - \frac{1}{1+ e^{-X_i'\beta}})X_i$$
+
+
+``` {r}
+score_i <- function(dv_i, x_i, .betas) {
+  s = (dv_i - Fn) * x_i
+  cat("The marginal log-likelihood value for individual 1 is:\n")
+  matrix(s, dimnames = list(paste0("beta_", 0:4), "Score")) %>% 
+    round(3)
+}
+
+score_i(dv_i, x_i, betas)
+```
+
+
+### 4.  Compute the Hessian Matrix and Fisher information (analytically).
+
+For a single observation, we can take the derivative of the above score again to get to the Hessian: $\mathcal{H}_i = \frac{\partial \ell_i^2 }{\partial \beta \partial \beta'} = - f(Z_i) X_i X_i^T$
+
+We don't even need the derivative $f(Z_i)$ in this case because of a convenient relationship: 
+
+$$\mathcal{H}_i = \frac{\partial \ell_i^2 }{\partial \beta \partial \beta'} = - [F(Z_i)(1 - F(Z_i)) ] \cdot X_i X_i^T $$
+And the Fisher information: 
+
+$$\mathcal{I}(X_i, \beta) = \mathbb{E}_X[-\mathcal{H}_i(X_i,\beta)]=\mathbb{E}_X[\mathcal{S}_i(X_i,\beta) \cdot \mathcal{S}_i(X_i,\beta)^T]$$
+
+``` {r}
+hessian_i <- function(x_i, .betas = betas) {
+  Fn = lgc(x_i %*% .betas) 
+  h_i = (-1) * (Fn * (1 - Fn)) * x_i %*% t(x_i)
+  cat("The Hessian matrix for individual 1 is:\n")
+  h_i %>% signif(3)
+}
+
+hessian_i(x_i, betas)
+```
+
+
+### 5.  Code up the Fisher Information for the logit model above $I(\widehat{\beta})$ using the Hessian Matrix.
+
+
+```{r}
+# Let's rewrite the function more for functional use
+hessian_i <- function(..., .betas = betas) {
+  x_i <- matrix(c(...), ncol = 1) # vector 5x1
+  Fn <- lgc(t(x_i) %*% .betas) # scalar
+  h_i <- (-1) * (Fn * (1 - Fn)) * x_i %*% t(x_i)  # matrix 5x5
+  h_i
+}
+
+fisher_info_hessian <- function(data = Hdma, .vars = vars){
+  data <- tibble(constant = 1, select(data, all_of(.vars)))
+  data <- drop_na(data)
+  n <- nrow(data)
+  h_is <- pmap(data, hessian_i)
+  big_h <- (-1/n) * reduce(h_is, `+`)
+  big_h
+}
+
+fisher_info_hessian()
+```
+
+6.  Code up the Fisher Information for the logit model above $I(\widehat{\beta})$ using the score method.
+
+``` {r}
+score2_i <- function(..., .betas = betas) {
+  dv_i <- as.numeric(c(...)[[1]]) # scalar
+  x_i <- matrix(c(...)[-1], ncol = 1) # vector 5x1
+  Fn <- lgc(t(x_i) %*% .betas) # scalar
+  s_i = (dv_i - Fn) * x_i # vector 5x1
+  s2_i = s_i %*% t(s_i) # matrix 5x5
+  s2_i
+}
+
+fisher_info_score <- function(data = Hdma, .vars = vars){
+  data <- tibble(dv = pull(data, deny), # NOT select!
+                 constant = 1, 
+                 select(data, all_of(.vars)))
+  # That one missing value really is a pain
+  data <- drop_na(data)
+  n <- nrow(data)
+  score2_is <- pmap(data, score2_i)
+  big_h <- (1/n) * reduce(score2_is, `+`)
+  big_h
+}
+
+fisher_info_score()
+```
+
+Did we achieve the same? 
+
+```{r}
+identical(fisher_info_hessian(), fisher_info_score())
+```
+
+7.  Compute the standard errors from the Fisher information and compare them to the standard errors reported from the regression. How do they compare?
+
+
+Standard errors from regression
+```{r}
+model_se <- sqrt(diag(vcov(logit)))
+model_se
+```
+
+Standard errors from the Fisher information matrix
+```{r}
+fisher_se <- sqrt(diag(fisher_info_hessian()))
+fisher_se %>% set_names(names(model_se))
+```
+
+Are they the same? 
+
+```{r}
+identical(model_se, fisher_se)
+```
+
+
+### 8.  Generate $n=100$ observations where $\lambda = 15$ from a poisson model:
 
 $$ Y_i \sim Pois(\lambda)$$
 
-9. The poisson distribution is a discrete distribution for count data where the p.m.f. is given by:
-
-$$Pr(Y_i =k )=\frac{\lambda^k e^{-\lambda}}{k!}a$$
-
-10. Write the log-likelihood $\ell(y_1,\ldots,y_n; \lambda)$ (analytically).
-
-11. Write the Score contribution $\mathcal{S}_i(y_i; \lambda)$ (analytically).
-
-12. Write the Hessian Contribution $\mathcal{H}_i(y_i; \lambda)$ (analytically).
-
-13. Code up the log-likelihood function
 
 ```{r}
-pois_log_lik <- function(lambda,y){
-  
-  return(ll)
+poisson_sim <- function(n = 100, lambda = 15){
+  x <- rpois(n, lambda)
 }
+
+poisson_sim <- poisson_sim()
+hist(poisson_sim)
 ```
 
-14. Find the value of $\lambda$ that maximizes your log likelihood using \texttt{optim} in R.
+
+
+### 9.  The poisson distribution is a discrete distribution for count data where the p.m.f. is given by:
+
+$$Pr(Y_i =k )=\frac{\lambda^k e^{-\lambda}}{k!}$$
+
+### 10. Write the log-likelihood $\ell(y_1,\ldots,y_n; \lambda)$ (analytically).
+
+The likelihood function is the product of the i.i.d. observations (here $n=100$): 
+
+$$\mathcal{L}(\lambda | Y )= \prod^{n}_{i =1} \frac{\lambda^{y_i} e^{-\lambda}}{y_i!}$$
+The log-likelihood function is the sum of the i.i.d. observations: 
+
+$$\ell(\lambda | Y )= \sum^{n}_{i =1} ln \frac{\lambda^{y_i} e^{-\lambda}}{y_i!} = \sum^{n}_{i =1}[- \lambda + y_i\cdot ln(\lambda) - ln (y_i!) ]$$
+
+
+### 11. Write the Score contribution $\mathcal{S}_i(y_i; \lambda)$ (analytically).
+
+The score function is the first derivative of the log-likelihood: 
+
+$$\frac{\partial \ell_i(\lambda | y_i )} {\partial \lambda}= -1 + \frac{1}{\lambda} y_i$$
+
+### 12. Write the Hessian Contribution $\mathcal{H}_i(y_i; \lambda)$ (analytically).
+
+$$ \mathcal{H}_i(y_i; \lambda) =\frac{\partial^2 \ell_i(\lambda | y_i )} {\partial^2 \lambda}=  \frac{-1}{\lambda^2} y_i$$
+
+### 13. Code up the log-likelihood function
+
+```{r}
+pois_log_lik <- function(lambda, y = poisson_sim){
+  s <- -lambda + y * log(lambda) - lfactorial(y)
+  l <- sum(s)
+  l
+}
+
+lambda = 15
+
+pois_log_lik(lambda, poisson_sim)
+```
+
+### 14. Find the value of $\lambda$ that maximizes your log likelihood using \texttt{optim} in R.
+
+```{r}
+# Produce a parameter starting point
+par <- runif(1) * 10 + 1
+
+# Default minimizes
+# SANN is best for integer problems?
+out <- optim(par, pois_log_lik, 
+             method = "SANN", 
+             control = list(fnscale = -1))
+
+# optimx::optimx(par, pois_log_lik, 
+#                method = "BFGS", 
+#                control = list(maximize = TRUE))
+
+
+out
+# Compare
+mean(poisson_sim)
+```
+
 
 15. Write a function that returns the standard error of $\hat\lambda$:
 
+Note that $I(\widehat{\beta}) = n I_i(\widehat{\beta})$
+
 ```{r}
-pois_se <- function(lambda_hat,y){
-  
-  return(se)
+pois_se <- function(lambda_hat, y = poisson_sim){
+  n <- length(y)
+  info <- (-1) * sum(-1 / (lambda_hat)^2 * y) 
+  se <- sqrt(solve(info)) # matrix inversion not needed here 
+  se
 }
+
+lambda_hat <- out$par
+
+pois_se(lambda_hat)
+
+# Check with R functions
+test <- glm(y ~ x, 
+            data = tibble(x = 1, y = poisson_sim), 
+            family = poisson(link = "identity"))
+
+summary(test)$coef
+
+```
+
