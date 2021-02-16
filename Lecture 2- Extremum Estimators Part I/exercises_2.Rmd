@@ -25,7 +25,7 @@ The function should take the following arguments:
 -   single : dummy for single borrower
 -   self : dummy for self-employed
 
-```{r, include=F}
+```{r, message=F}
 library("Ecdat")
 data("Hmda")
 
@@ -51,8 +51,9 @@ The log-likelihood of a single observation for the logit model is:
 $$\ell_i(y_i | \beta)=  y_i \ln (F(X_i, \beta)) + (1-y_i) \ln(1- F(X_i, \beta))$$
 
 ``` {r}
-# Get beta hats from regression output and add constant
+# Get beta hats from regression output
 vars <- c("dir", "hir", "single", "self")
+# Get first observation and add constant
 x_i <- matrix(c(1, as.numeric(Hmda[1, vars])), ncol = 1)
 dv_i <- as.numeric(Hdma[1, "deny"])
 
@@ -61,7 +62,7 @@ betas <- logit$coefficients
 n <- nrow(Hmda)
 
 # Logistic function
-lgc <- function(x){ as.numeric(1 / (1 + exp(-x)))}
+lgc <- function(x){ as.numeric(1 / (1 + exp(-x))) }
 Fn <- log(lgc(t(x_i) %*% betas))
 
 # Log-likelihood
@@ -78,7 +79,7 @@ llik_i(dv_i, x_i, betas)
 
 The contribution of a single observation to the log-likelihood for the logit is the score $i$, where $f(X_i, \beta) = f(Z_i)$ is the derivative:
 
-$$ \mathcal{S}_i(X_i, \beta) = {S}_i(Z_i) = \frac{\partial \ln f(Z_i)}{\partial \beta}  =  \frac{y_i}{ F(Z_i)} \frac{ d F}{d \beta}(Z_i) - \frac{1-y_i}{1-F(Z_i)}  \frac{ d F}{d \beta} (Z_i) $$
+$$ \mathcal{S}_i(X_i, \beta) = {S}_i(Z_i) = \frac{\partial \ln f(Z_i)}{\partial \beta}  =  \frac{y_i}{ F(Z_i)} \frac{ d F(Z_i)}{d \beta} - \frac{1-y_i}{1-F(Z_i)}  \frac{ d F(Z_i)}{d \beta}  $$
 This simplifies to: 
 
 $$ \mathcal{S}_i(X_i, \beta) = (y_i - F(X_i, \beta)) X_i = (y_i - \frac{1}{1+ e^{-X_i'\beta}})X_i$$
@@ -133,17 +134,18 @@ hessian_i <- function(..., .betas = betas) {
 
 fisher_info_hessian <- function(data = Hdma, .vars = vars){
   data <- tibble(constant = 1, select(data, all_of(.vars)))
+  # That one missing value really is a pain
   data <- drop_na(data)
   n <- nrow(data)
-  h_is <- pmap(data, hessian_i)
-  big_h <- (-1/n) * reduce(h_is, `+`)
-  big_h
+  h_is <- pmap(data, hessian_i) # Compute each H_i
+  fisher <- (-1) * reduce(h_is, `+`)
+  fisher
 }
 
 fisher_info_hessian()
 ```
 
-6.  Code up the Fisher Information for the logit model above $I(\widehat{\beta})$ using the score method.
+### 6.  Code up the Fisher Information for the logit model above $I(\widehat{\beta})$ using the score method.
 
 ``` {r}
 score2_i <- function(..., .betas = betas) {
@@ -159,12 +161,11 @@ fisher_info_score <- function(data = Hdma, .vars = vars){
   data <- tibble(dv = pull(data, deny), # NOT select!
                  constant = 1, 
                  select(data, all_of(.vars)))
-  # That one missing value really is a pain
   data <- drop_na(data)
   n <- nrow(data)
   score2_is <- pmap(data, score2_i)
-  big_h <- (1/n) * reduce(score2_is, `+`)
-  big_h
+  fisher <- (1) * reduce(score2_is, `+`)
+  fisher
 }
 
 fisher_info_score()
@@ -174,9 +175,12 @@ Did we achieve the same?
 
 ```{r}
 identical(fisher_info_hessian(), fisher_info_score())
+
+# And from the R routine
+solve(vcov(logit))
 ```
 
-7.  Compute the standard errors from the Fisher information and compare them to the standard errors reported from the regression. How do they compare?
+### 7.  Compute the standard errors from the Fisher information and compare them to the standard errors reported from the regression. How do they compare?
 
 
 Standard errors from regression
@@ -187,7 +191,7 @@ model_se
 
 Standard errors from the Fisher information matrix
 ```{r}
-fisher_se <- sqrt(diag(fisher_info_hessian()))
+fisher_se <- sqrt(diag(solve(fisher_info_hessian())))
 fisher_se %>% set_names(names(model_se))
 ```
 
@@ -275,7 +279,7 @@ mean(poisson_sim)
 ```
 
 
-15. Write a function that returns the standard error of $\hat\lambda$:
+### 15. Write a function that returns the standard error of $\hat\lambda$:
 
 Note that $I(\widehat{\beta}) = n I_i(\widehat{\beta})$
 
@@ -283,7 +287,7 @@ Note that $I(\widehat{\beta}) = n I_i(\widehat{\beta})$
 pois_se <- function(lambda_hat, y = poisson_sim){
   n <- length(y)
   info <- (-1) * sum(-1 / (lambda_hat)^2 * y) 
-  se <- sqrt(solve(info)) # matrix inversion not needed here 
+  se <- sqrt(solve(info)) # matrix inversion for scalar 
   se
 }
 
