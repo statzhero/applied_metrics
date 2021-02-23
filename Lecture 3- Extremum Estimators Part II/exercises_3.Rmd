@@ -1,26 +1,25 @@
 ---
-title: "exercises_3.Rmd"
+title: 'Exercises: Week 3'
+subtitle: "Econometrics Prof. Conlon"
+author: "Ulrich Atz"
+date: '2021-02-16'
 output:
-  pdf_document: default
-  html_notebook: default
+  pdf_document 
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r packages}
+```{r packages, message=F}
+library(tidyverse)
+library(broom)
 library(AER)
 library(gmm)
 library(stargazer)
 data("PSID1976")
 df <- subset(PSID1976, participation=="yes")
+# Hashtag NOLOOPS
 ```
 
 ## Estimate the relationship between:
@@ -40,7 +39,19 @@ summary(iv_results1)
 summary(gmm_results1)
 ```
 
-1. How come the point estimates $\widehat{\beta}$ are the same but the standard errors are different?
+### 1. How come the point estimates $\widehat{\beta}$ are the same but the standard errors are different?
+
+In this simple example, the moment condition for the point estimates are the same as the first order condition in the OLS minimization problem. This is why OLS is also a method of moment estimator.
+
+The standard errors, however, are calculated as follows. In the GMM case, we use a sandwich estimator for the variance of our parameters. The OLS specification here assumes constant variance and is hence the most efficient estimator. We can check if a H(A)C covariance matrix gets us closer to the GMM results.
+
+```{r}
+sqrt(diag(vcov(gmm_results1)))
+
+# As per gmm::gmm documentation
+sqrt(diag(kernHAC(iv_results1)))
+```
+
 
 Where we have mother's and father's education as instruments for the endogenous variable (education):
 
@@ -56,39 +67,232 @@ summary(iv_results)
 summary(gmm_results)
 ```
 
-2. Why do both the point estimates and the standard errors differ now?
+### 2. Why do both the point estimates and the standard errors differ now?
 
-3. Let's write our own linear IV GMM estimator
-a. a function that recovers $\widehat{\beta}$
-b. a function that returns the GMM objective function $Q(\theta)$
-c. a function that returns the sandwich standard errors $SE(\widehat{\beta})$
-d. a function that returns an updated weighting matrix $\hat{W}$.
-```{r code, echo=TRUE}
-gmm_estimates<- function(Y, X, Z, W){
-  return 
-} 
+We are estimating 2SLS with `ivreg`; the number of instruments is greater than the number of predictors. The two parameter estimates should be equivalent if the weighting matrix is chosen as $(Z^TZ)^{-1}$. Here for GMM, however, it is the inverse of the HAC covariance matrix. The remaining difference in s.e. could be by assuming the sample mean as 0 (p. 14)?
 
-gmm_obj<- function(Y, X, Z, W, beta){
-  return 
-} 
 
-gmm_se<- function(Y, X, Z, W, beta){
-  return 
-} 
 
-gmm_W<- function(Y, X, Z, W, beta){
-  return 
-} 
+```{r}
+gmm_results_iid <- gmm(log(wage) ~ education + experience + I(experience^2),
+    x = exog, data = df, vcov = "iid")
+
+# Compare estimates
+gmm_results_iid$coefficients
+iv_results$coefficients
+
+# Compare standard errors
+sqrt(diag(vcov(gmm_results_iid)))
+sqrt(diag(vcov(iv_results)))
+
 ```
 
-4. Put your GMM estimates in a table with the following:
+### 3. Let's write our own linear IV GMM estimator
+
+Below is the one-step estimator.
+
+a. a function that recovers $\widehat{\beta}$
+
+```{r}
+# Could also use `crossprod`
+gmm_estimates<- function(Y, X, Z, W = "inverse"){
+  X = cbind(rep(1, nrow(X)), X)
+  Z = cbind(1, Z) # cbind recycles
+  if (is.matrix(W))  W = W 
+    else if (W == "inverse")    W = solve(t(Z)%*% Z)  
+    else if (W == "identity")   W = diag(ncol(Z))  
+
+  A = solve(t(X) %*% Z %*% W %*% t(Z) %*% X)
+  B = t(X) %*% Z %*% W %*% t(Z) %*% Y
+  b_gmm <- A %*% B
+  b_gmm
+} 
+
+# Test
+gmm_estimates(log(df$wage), exog_ols, exog) %>% t()
+gmm_results_iid$coefficients
+```
+
+b. a function that returns the GMM objective function $Q(\theta)$
+
+```{r}
+gmm_obj<- function(Y, X, Z, W = "inverse", beta){
+  n = nrow(X)
+  X = cbind(1, X)
+  Z = cbind(1, Z)
+  if (is.matrix(W))  W = W 
+    else if (W == "inverse")    W = solve(t(Z)%*% Z)  
+    else if (W == "identity")   W = diag(ncol(Z))  
+  
+  G = t(Z) %*% (Y - X %*% beta) / n
+  Q = t(G) %*% W %*% G * n # hm
+  Q
+} 
+
+# Test
+gmm_obj(log(df$wage), exog_ols, exog, beta = gmm_results_iid$coefficients) 
+gmm_results_iid$objective
+```
+
+The objective function in `gmm` specifies $\| var(\bar{g})^{-1/2}\bar{g}\|^2$, so I'm not sure how to replicate it exactly.
+
+c. a function that returns the sandwich standard errors $SE(\widehat{\beta})$
+
+``` {r}
+gmm_se <- function(Y, X, Z, W = "inverse", beta){
+  n = nrow(X)
+  X = cbind(1, X)
+  Z = cbind(1, Z)
+  if (is.matrix(W))  W = W 
+    else if (W == "inverse")    W = solve(t(Z) %*% Z)  
+    else if (W == "identity")   W = diag(ncol(Z))  
+  
+  res = (Y - X %*% beta)
+  S = t(Z) %*% Z * as.numeric(t(res) %*% res) / n
+  D =  t(X) %*% Z
+  bread = solve(D %*% W %*% t(D))
+  fill = D %*% W %*% S %*% t(W) %*% t(D)  
+  V =  bread %*% fill %*% bread
+# V = solve(D %*% solve(S) %*% t(D))
+  se = sqrt(diag(V))
+  se
+} 
+
+
+gmm_se(log(df$wage), exog_ols, exog, beta = gmm_results_iid$coefficients) 
+sqrt(diag(gmm_results_iid$vcov))
+```
+
+
+d. a function that returns an updated weighting matrix $\hat{W}$.
+
+``` {r}
+gmm_W <- function(Y, X, Z, beta){
+  n = nrow(X)
+  X = cbind(1, X) 
+  Z = cbind(1, Z)
+  
+  g_bar = t(Z) %*% (Y - X %*% beta) / n
+
+  # g <-  matrix(Z[1,] * c(Y[1] - X[1,] %*% beta)) - g_bar
+  # for (i in 2:nrow(X)) {  
+  #   g_i <- matrix(Z[i,] * c(Y[i] - X[i,] %*% beta)) - g_bar
+  #   g <- cbind(g, g_i)
+  # }
+  
+  g <- t(Z * c(Y - X %*% beta)) - c(g_bar)
+  
+  W_hat = solve(g %*% t(g) / n) 
+  W_hat  
+} 
+
+W_hat <- gmm_W(log(df$wage), exog_ols, exog, beta = gmm_results_iid$coefficients)
+
+gmm_estimates(log(df$wage), exog_ols, exog, W = W_hat) %>% t()  
+gmm_results$coefficients
+```
+
+\newpage
+
+### 4. Put your GMM estimates in a table with the following:
+
 a. OLS estimates
+``` {r}
+tidy(iv_results1) %>% mutate(across(where(is.numeric), round, 4)) %>% 
+  kableExtra::kbl(booktabs = T)
+```
 b. OLS (GMM) estimates
+``` {r}
+tidy(gmm_results1) %>% mutate(across(where(is.numeric), round, 4)) %>% 
+  kableExtra::kbl(booktabs = T)
+```
 c. IV estimates
+``` {r}
+tidy(iv_results) %>% mutate(across(where(is.numeric), round, 4)) %>% 
+  kableExtra::kbl(booktabs = T)
+```
 d. IV (GMM) estimates
+``` {r}
+tidy(gmm_results) %>% mutate(across(where(is.numeric), round, 4))  %>% 
+  kableExtra::kbl(booktabs = T)
+```
 e. Your estimates of one-step GMM using Identity weights
+``` {r}
+est_1s <- gmm_estimates(log(df$wage), exog_ols, exog, W = "identity") 
+se_1s <- gmm_se(log(df$wage), exog_ols, exog, beta = est_1s) 
+
+tidy(gmm_results) %>% 
+  mutate(
+    estimate = est_1s,
+    std.error = se_1s,
+    statistic = est_1s / se_1s, 
+    p.value = pnorm(abs(statistic), lower.tail = F)
+  ) %>% 
+  mutate(across(where(is.numeric), round, 4)) %>% 
+  kableExtra::kbl(booktabs = T)
+
+```
 f. Your estimates of two-step GMM starting at Identity weights
+
+``` {r}
+w_hat <- gmm_W(log(df$wage), exog_ols, exog, beta = est_1s)
+est_2s <- gmm_estimates(log(df$wage), exog_ols, exog, W = w_hat) 
+se_2s <- gmm_se(log(df$wage), exog_ols, exog, beta = est_2s) 
+
+tidy(gmm_results) %>% 
+  mutate(
+    estimate = est_2s,
+    std.error = se_2s,
+    statistic = est_2s / se_2s, 
+    p.value = pnorm(abs(statistic), lower.tail = F)
+  ) %>% 
+  mutate(across(where(is.numeric), round, 4)) %>% 
+  kableExtra::kbl(booktabs = T)
+
+```
+
 g. Your estimates of one-step GMM using 2SLS weights
+``` {r}
+est_1s <- gmm_estimates(log(df$wage), exog_ols, exog, W = "inverse") 
+se_1s <- gmm_se(log(df$wage), exog_ols, exog, beta = est_1s) 
+
+tidy(gmm_results) %>% 
+  mutate(
+    estimate = est_1s,
+    std.error = se_1s,
+    statistic = est_1s / se_1s, 
+    p.value = pnorm(abs(statistic), lower.tail = F)
+  ) %>% 
+  mutate(across(where(is.numeric), round, 4)) %>% 
+  kableExtra::kbl(booktabs = T)
+
+```
+
 h. Your estimates of two-step GMM starting at 2SLS weights
+
+``` {r}
+w_hat <- gmm_W(log(df$wage), exog_ols, exog, beta = est_1s)
+est_2s <- gmm_estimates(log(df$wage), exog_ols, exog, W = w_hat) 
+se_2s <- gmm_se(log(df$wage), exog_ols, exog, beta = est_2s) 
+
+tidy(gmm_results) %>% 
+  mutate(
+    estimate = est_2s,
+    std.error = se_2s,
+    statistic = est_2s / se_2s, 
+    p.value = pnorm(abs(statistic), lower.tail = F)
+  ) %>% 
+  mutate(across(where(is.numeric), round, 4)) %>% 
+  kableExtra::kbl(booktabs = T)
+
+```
 i. Use the (GMM) package to estimate continuously updating GMM (type='cue')
+```{r}
+gmm_cue <- gmm(log(wage) ~ education + experience + I(experience^2),
+              x = exog, data = df, type = 'cue')
+tidy(gmm_cue) %>% mutate(across(where(is.numeric), round, 4)) %>% 
+  kableExtra::kbl(booktabs = T)
+
+```
+
 

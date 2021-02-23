@@ -5,16 +5,14 @@ subtitle: "Econometrics II | Prof. Conlon"
 author: "Ulrich Atz"
 date: "`r Sys.Date()`"
 output:
-  tufte_handout: 
-    keep_tex: false
-    fig_caption: true
+  tufte_handout 
 ---
 
 ```{r setup, include=FALSE}
 library(tufte)
 # invalidate cache when the tufte version changes
-knitr::opts_chunk$set(cache.extra = packageVersion('tufte'))
-options(htmltools.dir.version = FALSE)
+# knitr::opts_chunk$set(cache.extra = packageVersion('tufte'))
+# options(htmltools.dir.version = FALSE)
 ```
 
 
