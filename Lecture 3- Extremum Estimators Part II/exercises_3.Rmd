@@ -26,8 +26,8 @@ df <- subset(PSID1976, participation=="yes")
 
 $$
 \log(wage_i) = \beta_0 + \beta_1 educ_i + \beta_2 exper_i + \beta_3 exper_i^2 + \varepsilon_i
-$$
-First we ignore the endogeneity of "education"
+$$ First we ignore the endogeneity of "education"
+
 ```{r ols, echo=TRUE}
 iv_results1 <- lm(log(wage) ~ education + experience + I(experience^2), data = df)
 
@@ -52,7 +52,6 @@ sqrt(diag(vcov(gmm_results1)))
 sqrt(diag(kernHAC(iv_results1)))
 ```
 
-
 Where we have mother's and father's education as instruments for the endogenous variable (education):
 
 ```{r iv, echo=TRUE}
@@ -70,8 +69,6 @@ summary(gmm_results)
 ### 2. Why do both the point estimates and the standard errors differ now?
 
 We are estimating 2SLS with `ivreg`; the number of instruments is greater than the number of predictors. The two parameter estimates should be equivalent if the weighting matrix is chosen as $(Z^TZ)^{-1}$. Here for GMM, however, it is the inverse of the HAC covariance matrix. The remaining difference in s.e. could be by assuming the sample mean as 0 (p. 14)?
-
-
 
 ```{r}
 gmm_results_iid <- gmm(log(wage) ~ education + experience + I(experience^2),
@@ -91,7 +88,7 @@ sqrt(diag(vcov(iv_results)))
 
 Below is the one-step estimator.
 
-a. a function that recovers $\widehat{\beta}$
+a.  a function that recovers $\widehat{\beta}$
 
 ```{r}
 # Could also use `crossprod`
@@ -113,7 +110,7 @@ gmm_estimates(log(df$wage), exog_ols, exog) %>% t()
 gmm_results_iid$coefficients
 ```
 
-b. a function that returns the GMM objective function $Q(\theta)$
+b.  a function that returns the GMM objective function $Q(\theta)$
 
 ```{r}
 gmm_obj<- function(Y, X, Z, W = "inverse", beta){
@@ -136,9 +133,9 @@ gmm_results_iid$objective
 
 The objective function in `gmm` specifies $\| var(\bar{g})^{-1/2}\bar{g}\|^2$, so I'm not sure how to replicate it exactly.
 
-c. a function that returns the sandwich standard errors $SE(\widehat{\beta})$
+c.  a function that returns the sandwich standard errors $SE(\widehat{\beta})$
 
-``` {r}
+```{r}
 gmm_se <- function(Y, X, Z, W = "inverse", beta){
   n = nrow(X)
   X = cbind(1, X)
@@ -163,10 +160,9 @@ gmm_se(log(df$wage), exog_ols, exog, beta = gmm_results_iid$coefficients)
 sqrt(diag(gmm_results_iid$vcov))
 ```
 
+d.  a function that returns an updated weighting matrix $\hat{W}$.
 
-d. a function that returns an updated weighting matrix $\hat{W}$.
-
-``` {r}
+```{r}
 gmm_W <- function(Y, X, Z, beta){
   n = nrow(X)
   X = cbind(1, X) 
@@ -196,28 +192,37 @@ gmm_results$coefficients
 
 ### 4. Put your GMM estimates in a table with the following:
 
-a. OLS estimates
-``` {r}
+a.  OLS estimates
+
+```{r}
 tidy(iv_results1) %>% mutate(across(where(is.numeric), round, 4)) %>% 
   kableExtra::kbl(booktabs = T)
 ```
-b. OLS (GMM) estimates
-``` {r}
+
+b.  OLS (GMM) estimates
+
+```{r}
 tidy(gmm_results1) %>% mutate(across(where(is.numeric), round, 4)) %>% 
   kableExtra::kbl(booktabs = T)
 ```
-c. IV estimates
-``` {r}
+
+c.  IV estimates
+
+```{r}
 tidy(iv_results) %>% mutate(across(where(is.numeric), round, 4)) %>% 
   kableExtra::kbl(booktabs = T)
 ```
-d. IV (GMM) estimates
-``` {r}
+
+d.  IV (GMM) estimates
+
+```{r}
 tidy(gmm_results) %>% mutate(across(where(is.numeric), round, 4))  %>% 
   kableExtra::kbl(booktabs = T)
 ```
-e. Your estimates of one-step GMM using Identity weights
-``` {r}
+
+e.  Your estimates of one-step GMM using Identity weights
+
+```{r}
 est_1s <- gmm_estimates(log(df$wage), exog_ols, exog, W = "identity") 
 se_1s <- gmm_se(log(df$wage), exog_ols, exog, beta = est_1s) 
 
@@ -232,9 +237,10 @@ tidy(gmm_results) %>%
   kableExtra::kbl(booktabs = T)
 
 ```
-f. Your estimates of two-step GMM starting at Identity weights
 
-``` {r}
+f.  Your estimates of two-step GMM starting at Identity weights
+
+```{r}
 w_hat <- gmm_W(log(df$wage), exog_ols, exog, beta = est_1s)
 est_2s <- gmm_estimates(log(df$wage), exog_ols, exog, W = w_hat) 
 se_2s <- gmm_se(log(df$wage), exog_ols, exog, beta = est_2s) 
@@ -251,8 +257,9 @@ tidy(gmm_results) %>%
 
 ```
 
-g. Your estimates of one-step GMM using 2SLS weights
-``` {r}
+g.  Your estimates of one-step GMM using 2SLS weights
+
+```{r}
 est_1s <- gmm_estimates(log(df$wage), exog_ols, exog, W = "inverse") 
 se_1s <- gmm_se(log(df$wage), exog_ols, exog, beta = est_1s) 
 
@@ -268,9 +275,9 @@ tidy(gmm_results) %>%
 
 ```
 
-h. Your estimates of two-step GMM starting at 2SLS weights
+h.  Your estimates of two-step GMM starting at 2SLS weights
 
-``` {r}
+```{r}
 w_hat <- gmm_W(log(df$wage), exog_ols, exog, beta = est_1s)
 est_2s <- gmm_estimates(log(df$wage), exog_ols, exog, W = w_hat) 
 se_2s <- gmm_se(log(df$wage), exog_ols, exog, beta = est_2s) 
@@ -286,7 +293,9 @@ tidy(gmm_results) %>%
   kableExtra::kbl(booktabs = T)
 
 ```
-i. Use the (GMM) package to estimate continuously updating GMM (type='cue')
+
+i.  Use the (GMM) package to estimate continuously updating GMM (type='cue')
+
 ```{r}
 gmm_cue <- gmm(log(wage) ~ education + experience + I(experience^2),
               x = exog, data = df, type = 'cue')
@@ -294,5 +303,3 @@ tidy(gmm_cue) %>% mutate(across(where(is.numeric), round, 4)) %>%
   kableExtra::kbl(booktabs = T)
 
 ```
-
-

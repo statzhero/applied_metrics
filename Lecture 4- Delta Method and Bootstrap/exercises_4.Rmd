@@ -1,86 +1,149 @@
 ---
-title: "Problem Set "
-author: "Prof. Conlon"
+title: 'Exercises: Week 4'
+subtitle: "Econometrics Prof. Conlon"
+author: "Ulrich Atz"
+date: '2021-02-25'
 output:
-  pdf_document: default
-  html_document: default
+  pdf_document 
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(broom)
+library(rsample)
+
+set.seed(202103)
 ```
-
-
-\newcommand{\E}[1]{\ensuremath{\mathbb{E}\big[#1\big]}}
-\newcommand{\Emeasure}[2]{\ensuremath{\mathbb{E}_{#1}\big[#2\big]}}
-
-## Packages to Install
-
-
-**The packages used this week are**
-
-* ggplot2
-
-```{r,comment='\t\t',echo=FALSE}
-
-## This is a code chunk: it is outlined in grey and has R code inside of it
-## Note: you can change what is shown in the final .pdf document using arguments 
-##       inside the curly braces at the top {r, comment='\t\t'}. For example, you 
-##       can turn off print statements showing in the .pdf by adding 'echo=False' 
-##       i.e. changing the header to {r, comment='\t\t',echo=FALSE}
-
-## ~~~~~~~~~~~~~~ CODE SETUP ~~~~~~~~~~~~~~ ##
-
-# ~ This bit of code will be hidden after Problem Set 1 ~
-#
-# This section sets up the correct directory structure so that
-#  the working directory for your code is always in the data folder
-
-# Retrieve the code working directory
-#script_dir = dirname(sys.frame(1)$ofile)
-initial_options <- commandArgs(trailingOnly = FALSE)
-render_command <- initial_options[grep('render',initial_options)]
-script_name <- gsub("'", "", 
-                    regmatches(render_command, 
-                               gregexpr("'([^']*)'",
-                               render_command))[[1]][1])
-
-# Determine OS (backslash versus forward slash directory system)
-sep_vals = c(length(grep('\\\\',script_name))>0,length(grep('/',script_name))>0)
-file_sep = c("\\\\","/")[sep_vals]
-```
-
 
 ## Problem 1 (Coding Exercise)
 
 This exercise asks you to implement and assess the performance of the bootstrap for the linear regression model. Suppose you have the linear regression model:
 
+```{=tex}
 \begin{align*}
   y_{i} = \beta_{0} + \beta_{1}x_{i} + \epsilon_{i}
 \end{align*}
-
+```
 where,
 
+```{=tex}
 \begin{itemize}
   \item[-] $x_{i} \sim U[0,2]$
   \item[-] $\epsilon_{i} \vert x_{i} \sim U[-1,1]$
   \item[-] $\beta_{0} = \beta_{1} = 1$ 
 \end{itemize}
-
+```
 We ask you to answer the following questions:
 
-\begin{itemize}
-\item[a.] Write a code that generates i.i.d. samples of sizes $n=10,50,200$ from that distribution, computes (1) the least squares estimator for $\beta$, (2) the t-ratio for the least squares coefficient $\beta_{1}$, $t_{n} = \frac{\hat{\beta}_{1,LS} - 1}{\hat{s.e.}(\hat{\beta}_{1,LS})}$, and (3) the least square residuals $\hat{\epsilon}_{i} = y_{i} - \hat{\beta}_{0,LS} - \hat{\beta}_{1,LS} x_{i}$
+1.  Write a code that generates i.i.d. samples of sizes $n=10,50,200$ from that distribution, computes (1) the least squares estimator for $\beta$, (2) the t-ratio for the least squares coefficient $\beta_{1}$, $t_{n} = \frac{\hat{\beta}_{1,LS} - 1}{\hat{s.e.}(\hat{\beta}_{1,LS})}$, and (3) the least square residuals $\hat{\epsilon}_{i} = y_{i} - \hat{\beta}_{0,LS} - \hat{\beta}_{1,LS} x_{i}$.
 
-\item[b.] Write a code for drawing $n$ times at random from the discrete uniform distribution over the estimated residuals $\hat{\epsilon}_{1},...,\hat{\epsilon}_{n}$ (i.e. with replacement).
+```{r}
+# Easier with true beta_1 = 0
+sim_sample <- function(n, betas = c(1, 0)){
+  d <- tibble(x = runif(n, 0, 2),
+              eps = runif(n, -1, 1),
+              y = betas[1] + betas[2] * x + eps)
+  d
+}
 
-\item[c.] Use your code from parts (a) and (b) to implement the residual bootstrap - assuming that $\epsilon_{i}$ and $x_{i}$ are independent - to estimate the 95th percentiles of the respective distributions of $\hat{\beta}_{1,LS}$ and $t_{n}$
+ols <- function(d){
+  n <- nrow(d)
+  y_ <- d$y - mean(d$y)
+  x_ <- d$x - mean(d$x)
+  b1 <- sum(x_ * y_) / sum(x_ * x_)
+  b0 <- mean(d$y) - (b1 * mean(d$x))
+  e <- d$y - b0 - b1 * d$x
+  t_b1 <- b1 / (sum(e^2) / (n - 2))
+  pars <- c(n, b0, b1, t_b1) %>% set_names(c("n", "b0", "b1", "t_b1")) %>% round(2)
+  pars
+}
 
-\item[d.] Repeat part (a) for sample size $n=10,50,200$ with $200$ replications, where you keep the initial draws of $x_{1},..,x_{n}$ from part (a) and only generate new residuals from their conditional distribution. Compute $\hat{\beta}_{1,LS}$ and the statistic $t_{n}$ using $200$ independent samples of size $n$. Use your results to compute a simulated estimate for the 95th percentiles of the respective sampling distributions for $\hat{\beta}_{1,LS}$ and $t_{n}$.
+d10 <- sim_sample(10) 
+d10 %>% ols
+d50 <- sim_sample(50) 
+d50 %>% ols
+d200 <- sim_sample(200) 
+d200 %>% ols
 
-\item[e.] Compare your results from (c) and (d). What do you conclude about the performance of the bootstrap? How does it compare to the 95th percentile of the asymptotic distribution of $t_{n}$?
+```
 
-\item[f.] See if you can construct a subsampled confidence interval for $n=200$ with $a_n = 25$. How does it compare to the bootstrapped CI?
+2.  Write a code for drawing $n$ times at random from the discrete uniform distribution over the estimated residuals $\hat{\epsilon}_{1},...,\hat{\epsilon}_{n}$ (i.e. with replacement).
 
-\end{itemize}
+3.  Use your code from parts (a) and (b) to implement the residual bootstrap - assuming that $\epsilon_{i}$ and $x_{i}$ are independent - to estimate the 95th percentiles of the respective distributions of $\hat{\beta}_{1,LS}$ and $t_{n}$
 
+
+```{r, warning = F}
+bs_par <- function(data) { 
+  d <- data
+  boots <- bootstraps(d, times = nrow(d), apparent = T)
+  
+  lm_bs <- function(splits) {
+    lm(formula(y ~ x), analysis(splits))
+  }
+  
+  boot_models <-
+    boots %>% 
+    mutate(model = map(splits, lm_bs),
+           coef_info = map(model, tidy))
+  
+  boot_coefs <- 
+    boot_models %>% 
+    unnest(coef_info) %>% 
+    filter(term != "(Intercept)")
+  
+  boot_coefs
+  }  
+
+rbind(bs_par(d10) %>% select(estimate, statistic) %>% summarise(across(everything(), quantile, 0.95)),
+      bs_par(d10) %>% select(estimate, statistic) %>% summarise(across(everything(), quantile, 0.95)),
+      bs_par(d10) %>% select(estimate, statistic) %>% summarise(across(everything(), quantile, 0.95))
+      ) %>% 
+  rename("b1 95%" = estimate, "t 95%" = statistic) %>% 
+  round(2) %>% 
+  mutate(sim = c(10, 50, 200)) %>% 
+  kableExtra::kbl(booktabs = T)
+
+```
+
+
+4.  Repeat part (a) for sample size $n=10,50,200$ with $200$ replications, where you keep the initial draws of $x_{1},..,x_{n}$ from part (a) and only generate new residuals from their conditional distribution. Compute $\hat{\beta}_{1,LS}$ and the statistic $t_{n}$ using $200$ independent samples of size $n$. Use your results to compute a simulated estimate for the 95th percentiles of the respective sampling distributions for $\hat{\beta}_{1,LS}$ and $t_{n}$.
+
+```{r, warning = F}
+bs_par <- function(data, reps = 200) { 
+  d <- data
+  boots <- bootstraps(d, times = reps, apparent = T)
+  
+  lm_bs <- function(splits) {
+    lm(formula(y ~ x), analysis(splits))
+  }
+  
+  boot_models <-
+    boots %>% 
+    mutate(model = map(splits, lm_bs),
+           coef_info = map(model, tidy))
+  
+  boot_coefs <- 
+    boot_models %>% 
+    unnest(coef_info) %>% 
+    filter(term != "(Intercept)")
+  
+  boot_coefs
+  }  
+
+rbind(bs_par(d10) %>% select(estimate, statistic) %>%       summarise(across(everything(), quantile, 0.95)),
+      bs_par(d10) %>% select(estimate, statistic) %>% summarise(across(everything(), quantile, 0.95)),
+      bs_par(d10) %>% select(estimate, statistic) %>% summarise(across(everything(), quantile, 0.95))
+      ) %>% 
+  rename("b1 95%" = estimate, "t 95%" = statistic) %>% 
+  round(2) %>% 
+  mutate(sim = c(10, 50, 200)) %>% 
+  kableExtra::kbl(booktabs = T)
+
+```
+
+5.  Compare your results from (c) and (d). What do you conclude about the performance of the bootstrap? How does it compare to the 95th percentile of the asymptotic distribution of $t_{n}$?
+
+I'm not sure here: it seems like that the low number of bootstraps makes anything possible. The asymptotic distribution of $t_{n}$ follows a standard normal distribution: $\Phi^{-1}(0.95) =$ `r qnorm(0.95) %>% round(3)`. 
+
+6.  See if you can construct a subsampled confidence interval for $n=200$ with $a_n = 25$. How does it compare to the bootstrapped CI?
