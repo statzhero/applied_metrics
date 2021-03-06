@@ -1,0 +1,27 @@
+---
+title: 'Homework 2'
+runningheader: "Econometrics II" # only for pdf output
+subtitle: "Econometrics II | Prof. Conlon"
+author: "Ulrich Atz"
+date: "2021-03-06"
+output:
+  tufte_handout 
+header-includes:
+  - \usepackage{tcolorbox}
+  - \usepackage{multirow}
+bibliography: references.bib
+---
+
+```{r setup, include=F, message=F}
+library(tufte)
+library(tidyverse)
+```
+
+# Part 1: Guerre Perrigne and Vuong (Econometrica 2000)
+```{r, message=T}
+
+
+```
+
+
+# References
