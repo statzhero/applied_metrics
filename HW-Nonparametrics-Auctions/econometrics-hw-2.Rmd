@@ -357,7 +357,7 @@ kernel_bws <- map2_dbl(flds, kbws, function(x, bw) {
   mse(res)
   })
 
-cat("Optimal bandwith based on MSE between 0.1 and 1: bw = ", 
+cat("Optimal bandwith based on MSE selected between 0.1 and 1: bw =", 
     kbws[which.min(kernel_bws)])
 
 ```
