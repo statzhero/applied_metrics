@@ -1,0 +1,187 @@
+---
+title: 'Exercises: Week March 30'
+subtitle: "Econometrics Prof. Conlon"
+author: "Ulrich Atz"
+date: '2021-03-30'
+output:
+  pdf_document 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### This weeks packages
+
+
+```{r cars, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(sampleSelection)
+library(MatchIt)
+```
+
+## Selection Example
+The code for this example can be found at:
+https://cran.r-project.org/web/packages/sampleSelection/vignettes/selection.pdf
+
+### 1. In this case we are going to work backwards. I will give you the code that esimates the selection model, and you will write down the equations (with estimated coefficients) and explain what is the selection problem, and how is it addressed here.
+
+The data is described as follows: 
+
+> The Mroz87 data frame contains data about 753 married women. These data are collected within the "Panel Study of Income Dynamics" (PSID). Of the 753 observations, the first 428 are for women with positive hours worked in 1975, while the remaining 325 observations are for women who did not work for pay in 1975.
+
+We are interested in a regression model that explains wage as dependent variable with education as presumably the key variable of interest. Labor force participation, however, is conditional on a woman's situation; here modeled as depending on age, family income, number of kids, and education. Age and experience for example are correlated. The average effect of experience on wage therefore suffers likely from a selection bias.
+
+```{r}
+library(equatiomatic)
+data( "Mroz87" )
+Mroz87$kids <- ( Mroz87$kids5 + Mroz87$kids618 > 0 )
+
+step1 <- glm(lfp ~ age + I( age^2 ) + faminc + kids + educ, 
+              data = Mroz87, family = binomial(link = "probit"))
+
+Mroz87$inv_mills <- invMillsRatio(step1)$IMR1
+Mroz87$prob <- predict(step1, type = 'response')
+
+step2 <- lm( wage ~ exper + I( exper^2 ) + educ + city + inv_mills, 
+             data = Mroz87[ Mroz87$lfp == 1, ])
+
+# extract_eq(step1, use_coefs = TRUE)
+# extract_eq(step2, use_coefs = TRUE)
+
+```
+
+First step regression:
+$$
+\widehat{P( \operatorname{lfp} = \operatorname{1} )} = \Phi[-4.16 + 0.19(\operatorname{age}) - 0.002(\operatorname{age^2}) + 0.00005(\operatorname{faminc}) - 0.45(\operatorname{kids}_{\operatorname{TRUE}}) + 0.1(\operatorname{educ})]
+$$
+
+Second step regression: 
+
+$$
+\operatorname{\widehat{wage}} = -0.97 + 0.02(\operatorname{exper}) + 0.0001(\operatorname{exper^2}) + 0.42(\operatorname{educ}) + 0.44(\operatorname{city}) - 1.1(\operatorname{inv\_mills})
+$$
+
+The second method estimates the parameters via maximum likelihood, i.e in one step. We can find the log-likelihood function as equation (12) in the vignette.
+
+```{r code Mroz}
+greeneTS <- selection( lfp ~ age + I( age^2 ) + faminc + kids + educ,
+    wage ~ exper + I( exper^2 ) + educ + city,
+    data = Mroz87, method = "2step" )
+summary(greeneTS)
+
+Mroz87$yhat <- predict(greeneTS)
+```
+
+```{r code MLE}
+greeneML <- selection( lfp ~ age + I( age^2 ) + faminc + kids + educ,
+    wage ~ exper + I( exper^2 ) + educ + city, data = Mroz87,
+    maxMethod = "BHHH", iterlim = 500 )
+summary(greeneML)
+```
+
+
+
+
+
+### 2. Explain the difference between the two-step and MLE estimates above. How does the procedure differ? Which do you prefer and why?
+
+The 2-step procedure first estimates a probit model and uses the results to construct the inverse Mill's ration, which then gets used as an additional variable in the second step, the OLS model.
+
+ML ought to be theoretically most efficient. However, as the vignette points out, "the two-step solution allows certain generalisations more easily than ML, and is more robust in certain circumstances." For example, the optimization algorithm may not converge.
+
+### 3. Now compare these results to a naive OLS regression of just the outcome (wages) that does not account for the selection effects from labor force participation. How do the coefficients in the outcome equation change?
+
+Experience matters a lot more in the model, e.g. the coefficients are statistically significant. The coefficient on education appears to not change much.
+
+``` {r}
+naive <- lm(wage ~ exper + I( exper^2 ) + educ + city, data = Mroz87) 
+Mroz87$yhat_naive <- predict(naive)
+
+summary(naive)
+```
+
+### 4. Plot the distribution of observed wages and predicted wages for college graduates (education >= 16) for the model with and without selection for labor force participation.
+
+The model with selection
+``` {r}
+hist(Mroz87[Mroz87$educ >= 16, "wage"], col = 'gray', breaks = 30, 
+     main = "Histogram of wage (blue = selection, orange = no selection)", 
+     xlab = "Wage filtered on college graduates")
+hist(Mroz87[Mroz87$educ >= 16, "yhat"], col = 'steelblue', add = T)
+hist(Mroz87[Mroz87$educ >= 16, "yhat_naive"], col = 'orange', add = T)
+
+```
+
+### Matching
+
+Following the vignette at: https://cran.r-project.org/web/packages/MatchIt/vignettes/MatchIt.html#assessing-the-quality-of-matches
+
+### 1. Discuss the balance table using the following unadjusted sample
+
+The balance table gives the standardized mean differences (exception: cobalt binary variables). The covariates are clearly not balanced at conventional levels.
+
+```{r match1}
+m.out0 <- matchit(treat ~ age + educ + race + married + 
+                   nodegree + re74 + re75, data = lalonde,
+                 method = NULL, distance = "glm")
+# summary(m.out0)
+
+cobalt::bal.tab(m.out0, thresholds = c(m = .05))
+```
+
+### 2. Perform 4 nearest neighbor matching using the Mahalbanois distance and the above covariates for real earnings in 1978. Give me your best estimate of the ATE and ATT of the treatment status. 
+
+
+
+```{r}
+
+nn4 <- matchit(treat ~ age + educ + race + married + nodegree + re74 + re75, 
+               data = lalonde,
+               method ="nearest", distance = "mahalanobis", ratio = 4,
+               estimand = "ATT")
+
+d_nn4 <-  match.data(nn4)
+
+att <- lm(re78 ~ treat + age + race + married + nodegree + re74 + re75, 
+          data = d_nn4, weights = weights)
+
+lmtest::coeftest(att, vcov. = sandwich::vcovCL, cluster = ~subclass) %>% broom::tidy() %>% filter(term == "treat") %>% mutate(term = "ATT") -> att_est
+
+att_est %>% kableExtra::kbl(booktabs = T)
+```
+
+```{r}
+
+nn4_u <- matchit(treat ~ age + educ + race + married + nodegree + re74 + re75, 
+               data = lalonde,
+               method ="nearest", distance = "mahalanobis", ratio = 4,
+               estimand = "ATC")
+
+d_nn4_u <-  match.data(nn4_u)
+
+atut <- lm(re78 ~ treat + age + race + married + nodegree + re74 + re75, 
+          data = d_nn4_u, weights = weights)
+
+ 
+lmtest::coeftest(atut, vcov. = sandwich::vcovCL, cluster = ~subclass) %>% broom::tidy() %>% filter(term == "treat") %>% mutate(term = "ATUT") -> atut_est
+
+atut_est %>% kableExtra::kbl(booktabs = T)
+```
+
+The ATE is a weighted average between the effect on the treated and the effect on the untreated.
+
+$$ ATE = \pi \cdot ATT + (1-\pi) \cdot ATUT $$
+
+``` {r}
+pi <- d_nn4 %>% summarise(prob = weighted.mean(treat, weights))
+
+ATE <- (pi * att_est$estimate + (1 - pi) * atut_est$estimate) %>% set_names("Average treatment effect")
+
+ATE
+```
+
+### 3. Is the ATE greater or less than the ATT, explain why this is a sensible outcome and what this implies for the ATUT.
+
+The ATE is smaller than the ATT. This result seems reasonable because it implies that the people in the control set, i.e. the untreated, i.e. the people who did not get a training program, have probably other reasons for why they would benefit less from the program even after conditioning on the observed covariates.
+
